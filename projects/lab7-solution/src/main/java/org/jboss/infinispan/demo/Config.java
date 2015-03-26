@@ -1,5 +1,6 @@
 package org.jboss.infinispan.demo;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -8,6 +9,7 @@ import javax.enterprise.inject.Produces;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
@@ -22,7 +24,6 @@ import org.jboss.infinispan.demo.model.Task;
  */
 public class Config {
 
-	
 	/**
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
@@ -31,7 +32,7 @@ public class Config {
 	public RemoteCache<Long, Task> getRemoteCache() {
 		ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.addServer()
-			.host("localhost").port(11322)
+			.host("localhost").port(11222).port(11322)
 			.security()
 	        .authentication()
 	            .enable()
@@ -50,7 +51,8 @@ public class Config {
 	@Produces
 	@ApplicationScoped
 	public org.infinispan.AdvancedCache<Long, String> getLocalRequestCache() {
-		org.infinispan.Cache<Long,String> basicCache = getLocalCacheManager().getCache("client-request-cache",true);
+		//Cache<Long,String> basicCache = getLocalCacheManager().getCache("client-request-cache",true);
+		 org.infinispan.Cache<Long,String> basicCache = getLocalCacheManager().getCache("stats", true);
 		return basicCache.getAdvancedCache();
 	}
 	
@@ -64,16 +66,43 @@ public class Config {
 	 *  since we already import org.infinispan.client.hotrod.configuration.ConfigurationBuilder
 	 *  
 	 * @return org.infinispan.manager.EmbeddedCacheManager
+	 * @throws IOException 
 	 */
 	private EmbeddedCacheManager getLocalCacheManager() {
-		GlobalConfiguration glob = new GlobalConfigurationBuilder()
-			.globalJmxStatistics().allowDuplicateDomains(true).enable().build();
+		/*GlobalConfiguration glob = new GlobalConfigurationBuilder()
+			.globalJmxStatistics().enable()
+			.allowDuplicateDomains(true)
+			.build();
 	
 		org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
 			.expiration().lifespan(1,TimeUnit.DAYS)
 			.build();
 		
-		return new DefaultCacheManager(glob, loc, true);
+		return new DefaultCacheManager(glob, loc, true);*/
+		
+		/*try {
+			return new DefaultCacheManager("infinispan.xml");
+		} catch (IOException e) {
+			e.printStackTrace();
+			return new DefaultCacheManager();	
+		}*/
+		
+		GlobalConfiguration glob = new GlobalConfigurationBuilder().clusteredDefault() // Builds a default clustered
+				// configuration
+				.transport().addProperty("configurationFile", "jgroups-udp.xml") // provide a specific JGroups configuration
+				.globalJmxStatistics().allowDuplicateDomains(true).enable() // This method enables the jmx statistics of
+				// the global configuration and allows for duplicate JMX domains
+				.build(); // Builds the GlobalConfiguration object
+		
+		org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
+		        .jmxStatistics().enable() // Enable JMX statistics
+				.clustering().cacheMode(CacheMode.DIST_SYNC) // Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
+				.hash().numOwners(2) // Keeps two copies of each key/value pair
+				.expiration().lifespan(1,TimeUnit.DAYS) // Set expiration - cache entries expire after some time (given by
+				// the lifespan parameter) and are removed from the cache (cluster-wide).
+				.build();
+				
+        return new DefaultCacheManager(glob, loc, true);
 	}
 
 }

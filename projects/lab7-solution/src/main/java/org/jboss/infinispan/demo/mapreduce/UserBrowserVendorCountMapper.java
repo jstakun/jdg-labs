@@ -12,12 +12,18 @@ public class UserBrowserVendorCountMapper implements
 	 * 
 	 */
 	private static final long serialVersionUID = -5989618131097142749L;
+	
+	private int counter = 0;
 
 	@Override
 	public void map(Long key, String value, Collector<String, Integer> collector) {
 		if (value!=null) {
+			synchronized (this) {
+				counter++;
+				System.out.println("UserBrowserVendorCountMapper executed " + counter + " times in " + this.toString());
+			}
 			if (value.contains("Chrome")) {
-				collector.emit("Googel Chrome", 1);
+				collector.emit("Google Chrome", 1);
 			} else if (value.contains("Safari")) {
 				collector.emit("Safari", 1);
 			} else if (value.contains("MSIE")) {

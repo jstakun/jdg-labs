@@ -20,6 +20,7 @@ public class CountReducer implements Reducer<String, Integer>,
 			Integer i = (Integer) iter.next();
 			sum += i;
 		}
+		System.out.println("Running reduce for " + reducedKey);
 		return sum;
 	}
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+    <deployment>
+        <dependencies>
+            <module name="org.infinispan" slot="jdg-6.4" services="export"/>
+            <module name="org.infinispan.client.hotrod" slot="jdg-6.4" services="export"/>
+        </dependencies>
+    </deployment>
+</jboss-deployment-structure>
