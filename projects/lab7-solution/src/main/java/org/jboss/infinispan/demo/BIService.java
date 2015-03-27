@@ -89,10 +89,10 @@ public class BIService {
 	public void generateTestData(int count, int first) {
 		Random random = new Random(System.currentTimeMillis());
 		System.out.println("Starting loading batch data...");
-		for(int i=first;i<count;i++) {
+		for(int i=first;i<(first+count);i++) {
 			int agent = random.nextInt(fakeUserAgents.length);
 			requestCache.put(new Long(i), fakeUserAgents[agent]);
-			if (i % 100 == 0) {
+			if (i % 1000 == 0) {
 				System.out.println("Loaded " + i + " key/value pairs");
 			}
 		}
