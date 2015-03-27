@@ -27,7 +27,7 @@ public class UserBrowserVendorCountMapper implements Mapper<Long, String, String
 			} else {
 				collector.emit("Unknown", 1);
 			}
-			collector.emit("AllBrowsers", 1);
+			collector.emit("All Browsers", 1);
 		}
 	}
 	

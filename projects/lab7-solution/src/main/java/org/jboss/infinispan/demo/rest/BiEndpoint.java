@@ -48,13 +48,16 @@ public class BiEndpoint {
 	}
 	
 	@GET
-	@Path("/gentestdata/{count}")
+	@Path("/gentestdata/{count}/{first}")
 	@Produces("application/json")
-	public Response getTestData(@PathParam("count") int count) {
+	public Response getTestData(@PathParam("count") int count,@PathParam("first") int first) {
 		if (count < 0) {
 			count = 1000;
 		}
-		biService.generateTestData(count);
+		if (first < 0) {
+			count = 0;
+		}
+		biService.generateTestData(count, first);
 		return Response.noContent().build();
 	}
 }

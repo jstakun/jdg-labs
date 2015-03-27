@@ -54,8 +54,8 @@ public class BIService {
 		
 		return new MapReduceTask<Long, String, String, Integer>(requestCache.getAdvancedCache())
 				.mappedWith(new UserOSCountMapper())
-				.reducedWith(new CountReducer(CountReducer.MODE.GLOBAL))
 				.combinedWith(new CountReducer(CountReducer.MODE.LOCAL))
+				.reducedWith(new CountReducer(CountReducer.MODE.GLOBAL))
 				.execute();	
 	}
 	
@@ -77,19 +77,19 @@ public class BIService {
 		
 		return new MapReduceTask<Long, String, String, Integer>(requestCache.getAdvancedCache())
 				.mappedWith(new UserBrowserVendorCountMapper())
-				.reducedWith(new CountReducer(CountReducer.MODE.GLOBAL))
 				.combinedWith(new CountReducer(CountReducer.MODE.LOCAL))
+				.reducedWith(new CountReducer(CountReducer.MODE.GLOBAL))
 				.execute();	
 	}
 	
 	public void generateTestData() {
-		generateTestData(5000);
+		generateTestData(5000,0);
 	}
 	
-	public void generateTestData(int count) {
+	public void generateTestData(int count, int first) {
 		Random random = new Random(System.currentTimeMillis());
 		System.out.println("Starting loading batch data...");
-		for(int i=0;i<count;i++) {
+		for(int i=first;i<count;i++) {
 			int agent = random.nextInt(fakeUserAgents.length);
 			requestCache.put(new Long(i), fakeUserAgents[agent]);
 			if (i % 100 == 0) {

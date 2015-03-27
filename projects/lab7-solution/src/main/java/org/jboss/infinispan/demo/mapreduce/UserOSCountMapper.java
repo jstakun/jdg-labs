@@ -28,7 +28,7 @@ public class UserOSCountMapper implements Mapper<Long, String, String, Integer>,
 			} else {
 				collector.emit("Unknown", 1);
 			}
-			collector.emit("AllOSs", 1);
+			collector.emit("All OSs", 1);
 		}		
 	}
 	
