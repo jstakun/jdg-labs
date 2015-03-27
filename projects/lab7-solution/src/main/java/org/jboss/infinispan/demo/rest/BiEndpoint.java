@@ -9,6 +9,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.PathParam;
 
 import org.jboss.infinispan.demo.BIService;
 
@@ -46,5 +47,14 @@ public class BiEndpoint {
 		return Response.noContent().build();
 	}
 	
-	
+	@GET
+	@Path("/gentestdata/{count}")
+	@Produces("application/json")
+	public Response getTestData(@PathParam("count") int count) {
+		if (count < 0) {
+			count = 1000;
+		}
+		biService.generateTestData(count);
+		return Response.noContent().build();
+	}
 }

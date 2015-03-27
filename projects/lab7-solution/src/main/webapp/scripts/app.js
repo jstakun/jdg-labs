@@ -120,7 +120,7 @@ var getColorForEntry = function(text) {
 		return "fill: #003d6e";
 	} else if(text=="Internet Explorer") {	
 		return "fill: #003d6e";
-	} else if(text=="Googel Chrome") {	
+	} else if(text=="Google Chrome") {	
 		return "fill: #cc0000";
 	} else if(text=="Safari") {	
 		return "fill: #9e292b";
