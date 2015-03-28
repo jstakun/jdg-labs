@@ -49,17 +49,26 @@ public class TransactionService {
 				.reducedWith(new TransactionReducer())
 				.execute();	
 		
+		System.out.println("MapReduce executed.");
+		
 		cache.clear();
 		
+		System.out.println("Remote cache prepared.");
+		
+		int i=0;
 		for (String key : transactions.keySet()) {
+			i++;
 			CustomerTransaction ct = transactionCache.get(key);
 			if (ct != null) {
 				cache.put(key, ct);
-				System.out.println("Transaction " + key + " saved to remote cache");
+				//System.out.println("Transaction " + key + " saved to remote cache");
+			}
+			if (i > 0 && i % 1000 == 0) {
+				System.out.println(i + " transactions loaded to remote cache.");
 			}
 		}
 		
-		System.out.println(transactions.keySet().size() + " transactions saved to remote cache");
+		System.out.println(transactions.keySet().size() + " transactions loaded to remote cache.");
 		
 		return transactions;
 	}
