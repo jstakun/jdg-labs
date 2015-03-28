@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import org.jboss.infinispan.demo.TransactionService;
+import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
 
 @Stateless
 @Path("/transactions")
@@ -20,10 +21,10 @@ public class TransactionEndpoint {
 	TransactionService tService;
 	
 	@GET
-	@Path("/filter")
+	@Path("/filter/amount/{operator}/{limit}")
 	@Produces("application/json")
-	public Map<String,Integer> filterTransactions() {
-		return tService.filterTransactions();
+	public Map<String,Integer> filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit) {
+		return tService.filterTransactionAmount(o, limit);
 	}
 	
 	@GET

@@ -43,11 +43,13 @@ public class TransactionService {
 		System.out.println("Transaction batch loaded.");
 	}
 	
-	public Map<String, Integer> filterTransactions() {
+	public Map<String, Integer> filterTransactionAmount(TransactionMapper.Operator o, double limit) {
 		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
-				.mappedWith(new TransactionMapper())
+				.mappedWith(new TransactionMapper(o, limit))
 				.reducedWith(new TransactionReducer())
 				.execute();	
+		
+		cache.clear();
 		
 		for (String key : transactions.keySet()) {
 			CustomerTransaction ct = transactionCache.get(key);
@@ -56,6 +58,8 @@ public class TransactionService {
 				System.out.println("Transaction " + key + " saved to remote cache");
 			}
 		}
+		
+		System.out.println(transactions.keySet().size() + " transactions saved to remote cache");
 		
 		return transactions;
 	}
