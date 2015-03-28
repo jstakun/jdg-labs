@@ -55,12 +55,14 @@ public class TransactionService {
 		
 		System.out.println("Remote cache prepared.");
 		
+		System.out.println(transactions.keySet().size() + " transactions will be loaded to remote cache.");
+		
 		int i=0;
 		for (String key : transactions.keySet()) {
 			i++;
 			CustomerTransaction ct = transactionCache.get(key);
 			if (ct != null) {
-				cache.put(key, ct);
+				cache.putAsync(key, ct); //.put(key, ct);
 				//System.out.println("Transaction " + key + " saved to remote cache");
 			}
 			if (i > 0 && i % 1000 == 0) {
@@ -71,5 +73,11 @@ public class TransactionService {
 		System.out.println(transactions.keySet().size() + " transactions loaded to remote cache.");
 		
 		return transactions;
+	}
+	
+	public boolean clear() {
+		transactionCache.clear();
+		System.out.println("Transaction cache cleared.");
+		return transactionCache.isEmpty();
 	}
 }

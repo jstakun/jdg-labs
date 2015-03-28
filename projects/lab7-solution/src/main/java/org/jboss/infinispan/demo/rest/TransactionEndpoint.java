@@ -35,6 +35,13 @@ public class TransactionEndpoint {
 			count = 1000;
 		}
 		tService.generateTestTransaction(count);
-		return Response.ok().build();
+		return Response.ok("{\"count\":" + count + "}").build();
+	}
+	
+	@GET
+	@Path("/clear")
+	public Response clear() {
+		boolean isClear = tService.clear();
+		return Response.ok("{\"isClear\":" + isClear + "}").build();
 	}
 }
