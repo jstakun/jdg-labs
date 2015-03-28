@@ -1,0 +1,44 @@
+package protony;
+
+/* @Indexed */
+message Customer {
+   
+   /* @IndexedField(index=true, store=false) */
+   required string customerid = 1;
+
+   /* @IndexedField */
+   optional string firstname = 2;
+   
+   /* @IndexedField */   
+   optional string lastname = 3;
+
+   optional string city = 4;
+
+   optional string country = 5;
+   
+   optional string middlename = 6;
+   
+   optional string phonenumber = 7;
+   
+   optional string postalcode = 8;
+   
+   optional string stateprovince = 9;
+   
+   optional string streetaddress = 10;
+   
+   optional string streetaddress2 = 11;
+}
+
+/* @Indexed */
+message CustomerTransaction {
+   
+   /* @IndexedField(index=true, store=false) */
+   required string transactionid = 1;
+   
+    /* @IndexedField */
+   required string customerid = 2;
+   
+   required double amount = 3;
+   
+   required int64 transactionDate = 4;
+}  

@@ -9,12 +9,15 @@ import javax.enterprise.inject.Produces;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
+import org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.jboss.infinispan.demo.model.Task;
+
+import com.redhat.waw.ose.model.CustomerTransaction;
 
 /**
  * This class produces configured cache objects via CDI
@@ -24,6 +27,7 @@ import org.jboss.infinispan.demo.model.Task;
  */
 public class Config {
 
+	private static boolean isRegistered = false;
 	/**
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
@@ -42,7 +46,30 @@ public class Config {
 		return new RemoteCacheManager(builder.build(), true).getCache("tasks");
 	}
 	
-	
+	@Produces
+	public RemoteCache<String, CustomerTransaction> getRemoteTransactionCache() {
+		ConfigurationBuilder builder = new ConfigurationBuilder();
+		builder.addServer().
+		    host("localhost").
+			port(11322).//port(11422).
+			marshaller(new ProtoStreamMarshaller());
+		
+		RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());
+		
+		synchronized (this) {
+			if (!isRegistered) {
+				try {
+					//ProtobufSchemaRegister.registerJmx("localhost", 10099, "clustered");
+					new ProtobufSchemaRegister().register(cacheManager);
+					isRegistered = true;
+				} catch (Exception e) {
+					e.printStackTrace();					
+				}
+			}
+		}
+				
+		return cacheManager.getCache("default");
+	}
 	/**
 	 * NOTE: We need an Advanced Cache since we are going to run map reduce functions against it later.
 	 * 
@@ -53,6 +80,13 @@ public class Config {
 	public org.infinispan.AdvancedCache<Long, String> getLocalRequestCache() {
 		//Cache<Long,String> basicCache = getLocalCacheManager().getCache("client-request-cache",true);
 		 org.infinispan.Cache<Long,String> basicCache = getLocalCacheManager().getCache("stats", true);
+		return basicCache.getAdvancedCache();
+	}
+	
+	@Produces
+	@ApplicationScoped
+	public org.infinispan.AdvancedCache<String, CustomerTransaction> getLocalTransactionCache() {
+		org.infinispan.Cache<String, CustomerTransaction> basicCache = getLocalCacheManager().getCache("transactions", true);
 		return basicCache.getAdvancedCache();
 	}
 	
@@ -104,5 +138,4 @@ public class Config {
 				
         return new DefaultCacheManager(glob, loc, true);
 	}
-
 }
