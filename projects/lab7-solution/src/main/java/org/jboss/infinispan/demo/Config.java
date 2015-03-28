@@ -51,7 +51,7 @@ public class Config {
 		ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.addServer().
 		    host("localhost").
-			port(11522).port(11622).port(11722).
+			port(11522).port(11622).//port(11722).
 			marshaller(new ProtoStreamMarshaller());
 		
 		RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());

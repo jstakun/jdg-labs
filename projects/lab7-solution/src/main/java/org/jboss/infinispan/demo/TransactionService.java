@@ -70,7 +70,7 @@ public class TransactionService {
 			}
 		}
 		
-		System.out.println(transactions.keySet().size() + " transactions loaded to remote cache.");
+		System.out.println(i + " transactions loaded to remote cache.");
 		
 		return transactions;
 	}
