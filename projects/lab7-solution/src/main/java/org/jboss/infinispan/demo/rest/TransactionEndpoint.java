@@ -1,7 +1,5 @@
 package org.jboss.infinispan.demo.rest;
 
-import java.util.Map;
-
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -23,25 +21,27 @@ public class TransactionEndpoint {
 	@GET
 	@Path("/filter/amount/{operator}/{limit}")
 	@Produces("application/json")
-	public Map<String,Integer> filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit) {
-		return tService.filterTransactionAmount(o, limit);
+	public Response filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit) {
+		Integer count = tService.filterTransactionAmount(o, limit);
+		return Response.status(200).entity("{filtered:" +count+"}").build();
 	}
 	
 	@GET
 	@Path("/gentestdata/{count}")
 	@Produces("application/json")
-	public Response getTestData(@PathParam("count") int count) {
+	public Response getTestData(@PathParam("count") Integer count) {
 		if (count < 0) {
 			count = 1000;
 		}
 		tService.generateTestTransaction(count);
-		return Response.ok("{count: " + count + "}").build();
+		return Response.status(200).entity("{generated:"+count+"}").build();
 	}
 	
 	@GET
 	@Path("/clear")
+	@Produces("application/json")
 	public Response clear() {
-		boolean isClear = tService.clear();
-		return Response.ok("{isClear: " + isClear + "}").build();
+		Boolean isClear = tService.clear();
+		return Response.status(200).entity("{cleared:"+isClear+"}").build();
 	}
 }
