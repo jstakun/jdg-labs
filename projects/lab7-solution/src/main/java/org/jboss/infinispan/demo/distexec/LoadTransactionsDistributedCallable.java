@@ -20,14 +20,9 @@ public class LoadTransactionsDistributedCallable implements DistributedCallable<
 	
 	@Override
 	public Long call() throws Exception {
-		TransactionService tService = null;
-		
-		try {
-			InitialContext initialContext = new InitialContext();
-			tService = (TransactionService) initialContext.lookup("java:global/mytodo/TransactionService");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			
+		InitialContext ctx = new InitialContext();
+		TransactionService tService = (TransactionService)ctx.lookup("java:global/mytodo/TransactionService");
 		
 		if (tService == null) {
 			throw new Exception("TransactionService is not available!");

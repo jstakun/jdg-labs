@@ -11,6 +11,8 @@ import javax.ws.rs.core.Response;
 import org.jboss.infinispan.demo.TransactionService;
 import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
 
+import com.redhat.waw.ose.model.Status;
+
 @Stateless
 @Path("/transactions")
 public class TransactionEndpoint {
@@ -23,7 +25,7 @@ public class TransactionEndpoint {
 	@Produces("application/json")
 	public Response filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit) {
 		Integer count = tService.filterTransactionAmount(o, limit);
-		return Response.status(200).entity("{filtered:" +count+"}").build();
+		return Response.status(200).entity(new Status(200, "Filtered " + count + " transactions")).build();
 	}
 	
 	@GET
@@ -34,7 +36,7 @@ public class TransactionEndpoint {
 			count = 1000;
 		}
 		tService.generateTestTransaction(count);
-		return Response.status(200).entity("{generated:"+count+"}").build();
+		return Response.status(200).entity(new Status(200, "Generated " + count + " transactions")).build();
 	}
 	
 	@GET
@@ -42,6 +44,6 @@ public class TransactionEndpoint {
 	@Produces("application/json")
 	public Response clear() {
 		Boolean isClear = tService.clear();
-		return Response.status(200).entity("{cleared:"+isClear+"}").build();
+		return Response.status(200).entity(new Status(200, "Cache cleared: " + isClear)).build();
 	}
 }
