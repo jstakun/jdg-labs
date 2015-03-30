@@ -25,9 +25,9 @@ public class TransactionReducer implements Reducer<String, Integer>, Serializabl
 		}
 		
 		if (mode == Mode.COMBINE) {
-			System.out.println("Combine task finished with status: " + sum + " transactions mapped on this node.");
+			System.out.println("Reduce task executed for key " + reducedKey + " on the child node.");
 		} else if (mode == Mode.REDUCE) {
-			System.out.println("Reduce task finished with status: " + sum + " transactions filtered in the cluster.");
+			System.out.println("Reduce task executed for key " + reducedKey + " on the master node.");
 		}
 		
 		return sum;
