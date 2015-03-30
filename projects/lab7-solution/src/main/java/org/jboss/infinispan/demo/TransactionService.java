@@ -1,7 +1,9 @@
 package org.jboss.infinispan.demo;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -40,7 +42,7 @@ public class TransactionService {
 				System.out.println("Loaded " + i + " transactions");
 			}
 		}
-		System.out.println("Transaction batch loaded.");
+		System.out.println("Task finished with status: " + count + " transactions loaded.");
 	}
 	
 	public Map<String, Integer> filterTransactionAmount(TransactionMapper.Operator o, double limit) {
@@ -57,8 +59,11 @@ public class TransactionService {
 		
 		System.out.println(transactions.keySet().size() + " transactions will be loaded to remote cache.");
 		
-		int i=0;
+		/*int i=0;
 		for (String key : transactions.keySet()) {
+			
+			transactions.keySet().
+			
 			i++;
 			CustomerTransaction ct = transactionCache.get(key);
 			if (ct != null) {
@@ -68,9 +73,19 @@ public class TransactionService {
 			if (i > 0 && i % 1000 == 0) {
 				System.out.println(i + " transactions loaded to remote cache.");
 			}
+		}*/
+		
+		Set<String> transactionsKeys = transactions.keySet();
+		
+		int i = 0;
+		int batchSize = -1;
+		while (batchSize != 0) {
+			batchSize = sendBatchToRemoteCache(1000, transactionsKeys);
+			System.out.println("Loaded " + batchSize + " transactions to remote cache.");
+			i += batchSize;
 		}
 		
-		System.out.println(i + " transactions loaded to remote cache.");
+		System.out.println("Task finished with status: " + i + " transactions loaded to remote cache.");
 		
 		return transactions;
 	}
@@ -79,5 +94,25 @@ public class TransactionService {
 		transactionCache.clear();
 		System.out.println("Transaction cache cleared.");
 		return transactionCache.isEmpty();
+	}
+	
+	private int sendBatchToRemoteCache(int count, Set<String> keys) {
+		Map<String, CustomerTransaction> transactionBatch = new HashMap<String, CustomerTransaction>();
+		
+		for (String key : keys) {
+			CustomerTransaction ct = transactionCache.remove(key);
+		    if (ct != null) {
+		    	transactionBatch.put(key, ct);
+		    }
+		    if (transactionBatch.size() >= count) {
+		    	break;
+		    }
+		}
+		
+		if (!transactionBatch.isEmpty()) {
+			cache.putAllAsync(transactionBatch);
+		}
+		
+		return transactionBatch.size();
 	}
 }
