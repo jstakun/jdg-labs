@@ -7,11 +7,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
-import org.infinispan.Cache;
+import org.infinispan.AdvancedCache;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.commons.util.concurrent.NotifyingFuture;
 import org.infinispan.distexec.DefaultExecutorService;
@@ -28,14 +29,19 @@ import com.redhat.waw.ose.model.CustomerTransaction;
 public class TransactionService {
 
 	@Inject
-	Cache<String, CustomerTransaction> transactionCache;
+	AdvancedCache<String, CustomerTransaction> transactionCache;
 	
 	@Inject
 	RemoteCache<String, CustomerTransaction> remoteCache;
 	
+	private static int batchCounter = 0;
+	
 	public void generateTestTransaction(int count) {
+		long start = System.currentTimeMillis();
 		Random r = new Random(System.currentTimeMillis());
 		System.out.println("Starting loading transaction batch...");
+		Map<String, CustomerTransaction> ctbatch = new HashMap<String, CustomerTransaction>();
+		
 		for(int i=0;i<count;i++) {
 			//TODO load customerid from DB
 			String customerid = "CST01010";
@@ -44,16 +50,34 @@ public class TransactionService {
     		t.setTransactionid(customerid + "_" + t.getTransactionDate() + "_" + i);
     		t.setCustomerid(customerid);
     		t.setAmount(r.nextDouble() * 1000d);
-    		transactionCache.put(t.getTransactionid(), t);
+    		//transactionCache.put(t.getTransactionid(), t);
+    		ctbatch.put(t.getTransactionid(), t);
 			
 			if (i > 0 && i % 1000 == 0) {
-				System.out.println("Loaded " + i + " transactions");
+				putTransactionBatchToLocalCache(ctbatch);
+				ctbatch.clear();
+			} else if (i == count-1 && !ctbatch.isEmpty()) {
+				putTransactionBatchToLocalCache(ctbatch);
 			}
 		}
-		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded.");
+		long end = System.currentTimeMillis();
+		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded in " + (end-start) + " milliseconds.");
+	}
+	
+	private void putTransactionBatchToLocalCache(Map<String, CustomerTransaction> ctbatch) {
+		/*NotifyingFuture<Void> response = transactionCache.putAllAsync(ctbatch, 1, TimeUnit.DAYS);
+		try {
+			response.get();
+			System.out.println("Loaded " + ctbatch.size() + " transactions: " + response.isDone());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}*/
+		transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
+		System.out.println("Loaded " + ctbatch.size() + " transactions.");
 	}
 	
 	public int filterTransactionAmount(TransactionMapper.Operator o, double limit) {
+		long start = System.currentTimeMillis();
 		NotifyingFuture<Void> response = remoteCache.clearAsync();
 		try {
 			response.get();
@@ -62,29 +86,40 @@ public class TransactionService {
 			e.printStackTrace();
 		}
 		
+		System.out.println("Starting MapReduce task...");
 		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
 				.mappedWith(new TransactionMapper(o, limit))
 				.combinedWith(new TransactionReducer(TransactionReducer.Mode.COMBINE))
 				.reducedWith(new TransactionReducer(TransactionReducer.Mode.REDUCE))
 				.execute();	
 		
-		System.out.println("MapReduce task finished with status: " + transactions.size() + " transactions filtered.");
-				
+		long end = System.currentTimeMillis();
+		System.out.println("MapReduce task finished with status: " + transactions.size() + " transactions filtered in " + (end-start) + " milliseconds.");
+		start = end;
+		
+		System.out.println("Starting Distributed loading task...");
 		DistributedExecutorService des = new DefaultExecutorService(transactionCache);
 		LoadTransactionsDistributedCallable loaderCallable = new LoadTransactionsDistributedCallable();
 		
 		List<Future<Long>> results = des.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
 		
 		long i = 0;
+		int l = 0;
 		for (Future<Long> f : results) {
+			l++;
 			try {
-				i += f.get();
+				i += f.get(5L, TimeUnit.MINUTES);
+			} catch (TimeoutException e) {
+				System.err.println("Network timeout occured. Please check if all transactions will be loaded to remote cache!");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		
-		System.out.println("Distributed task finished with status: " + i + " transactions loaded to remote cache.");
+		if (l == results.size()-1) {
+			end = System.currentTimeMillis();
+			System.out.println("Distributed task finished with status: " + i + " transactions loaded to remote cache in " + (end-start) + " milliseconds.");
+		} 
 		
 		return transactions.size();
 	}
@@ -101,7 +136,7 @@ public class TransactionService {
 			NotifyingFuture<CustomerTransaction> response = remoteCache.putAsync(key, ct, 1, TimeUnit.DAYS); //.put(key, ct);
 			try {
 				ct = response.get();
-				System.out.println("Transaction " + ct.getTransactionid() + " saved to remote cache");
+				System.out.println("Transaction " + ct.getTransactionid() + " saved to remote cache.");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -112,7 +147,7 @@ public class TransactionService {
 		int i = 0;
 		for (List<String> partition : Iterables.partition(keys, size)) {
 			int batchSize = loadTransactionBatchToRemoteCache(size, partition);
-			System.out.println("Loaded " + batchSize + " transactions to remote cache.");
+			System.out.println("Loaded " + batchSize + " transactions to remote cache in batch " + (++batchCounter) + ".");
 			i += batchSize;
 		}
 		return i;
@@ -133,7 +168,7 @@ public class TransactionService {
 		}
 		
 		if (!transactionBatch.isEmpty()) {
-			System.out.println("Loading to remote cache batch of " + transactionBatch.size() + " transactions.");
+			System.out.println("Loading batch of " + transactionBatch.size() + " transactions to remote cache.");
 			NotifyingFuture<Void> response = remoteCache.putAllAsync(transactionBatch, 1 , TimeUnit.DAYS);
 			try {
 				response.get();

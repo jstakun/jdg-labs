@@ -25,10 +25,10 @@ public class TransactionMapper implements Mapper<String, CustomerTransaction, St
 	@Override
 	public void map(String key, CustomerTransaction ct, Collector<String, Integer> collector) {
 		if (compare(ct.getAmount())) {
-			System.out.println("Transaction " + key + " meets comparison criteria.");
+			//System.out.println("Transaction " + key + " meets comparison criteria.");
 			collector.emit(key, 1);
 		} else {
-			System.out.println("Transaction " + key + " doesn't meet comparison criteria.");
+			//System.out.println("Transaction " + key + " doesn't meet comparison criteria.");
 		}
 	}
 	

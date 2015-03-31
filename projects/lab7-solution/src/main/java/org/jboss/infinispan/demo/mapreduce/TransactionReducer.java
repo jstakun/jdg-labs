@@ -24,11 +24,11 @@ public class TransactionReducer implements Reducer<String, Integer>, Serializabl
 			sum += i;
 		}
 		
-		if (mode == Mode.COMBINE) {
+		/*if (mode == Mode.COMBINE) {
 			System.out.println("Reduce task executed for key " + reducedKey + " on the child node.");
 		} else if (mode == Mode.REDUCE) {
 			System.out.println("Reduce task executed for key " + reducedKey + " on the master node.");
-		}
+		}*/
 		
 		return sum;
 	}
