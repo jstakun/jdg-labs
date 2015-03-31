@@ -6,12 +6,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
 import org.infinispan.Cache;
 import org.infinispan.client.hotrod.RemoteCache;
+import org.infinispan.commons.util.concurrent.NotifyingFuture;
 import org.infinispan.distexec.DefaultExecutorService;
 import org.infinispan.distexec.DistributedExecutorService;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
@@ -52,9 +54,13 @@ public class TransactionService {
 	}
 	
 	public int filterTransactionAmount(TransactionMapper.Operator o, double limit) {
-		remoteCache.clear();
-		
-		System.out.println("Remote cache prepared.");
+		NotifyingFuture<Void> response = remoteCache.clearAsync();
+		try {
+			response.get();
+			System.out.println("Remote cache prepared: " + response.isDone());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
 				.mappedWith(new TransactionMapper(o, limit))
@@ -92,8 +98,13 @@ public class TransactionService {
 	public void loadTransactionToRemoteCache(String key) {
 		CustomerTransaction ct = transactionCache.get(key);
 		if (ct != null) {
-			remoteCache.putAsync(key, ct); //.put(key, ct);
-			//System.out.println("Transaction " + key + " saved to remote cache");
+			NotifyingFuture<CustomerTransaction> response = remoteCache.putAsync(key, ct, 1, TimeUnit.DAYS); //.put(key, ct);
+			try {
+				ct = response.get();
+				System.out.println("Transaction " + ct.getTransactionid() + " saved to remote cache");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -122,7 +133,14 @@ public class TransactionService {
 		}
 		
 		if (!transactionBatch.isEmpty()) {
-			remoteCache.putAllAsync(transactionBatch);
+			System.out.println("Loading to remote cache batch of " + transactionBatch.size() + " transactions.");
+			NotifyingFuture<Void> response = remoteCache.putAllAsync(transactionBatch, 1 , TimeUnit.DAYS);
+			try {
+				response.get();
+				System.out.println("Loading done: " + response.isDone());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		return transactionBatch.size();
