@@ -16,12 +16,6 @@
 	</properties>
 	<dependencyManagement>
 		<dependencies>
-			<!--dependency>
-				<groupId>javax.annotation</groupId>
-				<artifactId>jsr250-api</artifactId>
-				<version>1.0</version>
-				<scope>provided</scope>
-			</dependency-->
 			<dependency>
 				<groupId>org.jboss.spec</groupId>
 				<artifactId>jboss-javaee-6.0</artifactId>
@@ -94,7 +88,8 @@
 		<dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-remote-query-client</artifactId>
-        </dependency> 
+            <scope>provided</scope>
+		</dependency> 
 		<dependency>
 			<groupId>org.jboss.spec.javax.annotation</groupId>
 			<artifactId>jboss-annotations-api_1.1_spec</artifactId>
@@ -115,6 +110,7 @@
 			<groupId>org.jboss.as</groupId>
 			<artifactId>jboss-as-arquillian-container-remote</artifactId>
 			<version>7.2.0.Final</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>

@@ -23,7 +23,9 @@ import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
 import org.jboss.infinispan.demo.mapreduce.TransactionReducer;
 
 import com.google.common.collect.Iterables;
+import com.redhat.waw.ose.model.Customer;
 import com.redhat.waw.ose.model.CustomerTransaction;
+import com.redhat.waw.ose.persistence.CustomerProvider;
 
 @Stateless
 public class TransactionService {
@@ -42,9 +44,12 @@ public class TransactionService {
 		System.out.println("Starting loading transaction batch...");
 		Map<String, CustomerTransaction> ctbatch = new HashMap<String, CustomerTransaction>();
 		
+		List<String> customerids = new CustomerProvider().getCustomerIds();
+		System.out.println("Found " + customerids.size() + " customer profiles.");
+		
+		
 		for(int i=0;i<count;i++) {
-			//TODO load customerid from DB
-			String customerid = "CST01010";
+			String customerid = customerids.get(r.nextInt(customerids.size()));
 			CustomerTransaction t = new CustomerTransaction();
     		t.setTransactionDate(System.currentTimeMillis());
     		t.setTransactionid(customerid + "_" + t.getTransactionDate() + "_" + i);
