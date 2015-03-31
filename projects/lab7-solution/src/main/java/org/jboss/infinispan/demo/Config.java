@@ -3,6 +3,8 @@ package org.jboss.infinispan.demo;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
@@ -25,9 +27,10 @@ import com.redhat.waw.ose.model.CustomerTransaction;
  * @author tqvarnst
  *
  */
+@Singleton
+@Startup
 public class Config {
 
-	private static boolean isRegistered = false;
 	/**
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
@@ -56,16 +59,13 @@ public class Config {
 		
 		RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());
 		
-		synchronized (this) {
-			if (!isRegistered) {
-				try {
-					//ProtobufSchemaRegister.registerJmx("localhost", 10099, "clustered");
-					new ProtobufSchemaRegister().register(cacheManager);
-					isRegistered = true;
-				} catch (Exception e) {
-					e.printStackTrace();					
-				}
-			}
+		try {
+			System.out.println("Registering protobuf schemas...");
+			//ProtobufSchemaRegister.registerJmx("localhost", 10099, "clustered");
+			new ProtobufSchemaRegister().register(cacheManager);
+		    System.out.println("Done");
+		} catch (Exception e) {
+			e.printStackTrace();					
 		}
 				
 		return cacheManager.getCache("default");

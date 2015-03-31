@@ -54,6 +54,7 @@ public class ProtobufSchemaRegister {
 		ctx.registerProtoFiles(new FileDescriptorSource().addProtoFile("customer.proto", this.getClass().getResourceAsStream(PROTOBUF_DEFINITION_RESOURCE)));
 		ctx.registerMarshaller(new CustomerMarshaller());
 		ctx.registerMarshaller(new CustomerTransactionMarshaller());				
+		
 		/*ProtoSchemaBuilder protoSchemaBuilder = new ProtoSchemaBuilder();
 		String generatedSchema = protoSchemaBuilder
 		       .fileName(PROTOBUF_DEFINITION_RESOURCE)
