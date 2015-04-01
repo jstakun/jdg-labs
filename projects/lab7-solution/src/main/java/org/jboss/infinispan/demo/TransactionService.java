@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,7 +24,6 @@ import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
 import org.jboss.infinispan.demo.mapreduce.TransactionReducer;
 
 import com.google.common.collect.Iterables;
-import com.redhat.waw.ose.model.Customer;
 import com.redhat.waw.ose.model.CustomerTransaction;
 import com.redhat.waw.ose.persistence.CustomerProvider;
 
@@ -116,9 +116,11 @@ public class TransactionService {
 				i += f.get(5L, TimeUnit.MINUTES);
 			} catch (TimeoutException e) {
 				System.err.println("Network timeout occured. Please check if all transactions will be loaded to remote cache!");
-			} catch (Exception e) {
+			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			} 
 		}
 		
 		if (l == results.size()-1) {

@@ -6,9 +6,6 @@ import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-
-import com.redhat.waw.ose.model.Customer;
 
 @Stateless
 public class CustomerProvider {
@@ -24,11 +21,11 @@ public class CustomerProvider {
 		"CST01033"};
 	
 	public List<String> getCustomerIds() {
-		/*if (entityManager == null) {
-			throw new Exception("EntityManager is not available!");
+		if (entityManager == null) {
+			System.err.println("EntityManager is not available!");
 		}
-		TypedQuery<Customer> query = entityManager.createQuery("select c from Customer c", Customer.class);
-		return query.getResultList();*/
+		//TypedQuery<Customer> query = entityManager.createQuery("select c from Customer c", Customer.class);
+		//return query.getResultList();*/
 		return Arrays.asList(customerids);
 	}
 }
