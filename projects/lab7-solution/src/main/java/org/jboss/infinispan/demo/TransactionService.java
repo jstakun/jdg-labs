@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -19,6 +17,7 @@ import org.infinispan.AdvancedCache;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.commons.util.concurrent.NotifyingFuture;
 import org.infinispan.distexec.DefaultExecutorService;
+import org.infinispan.distexec.DistributedExecutionCompletionService;
 import org.infinispan.distexec.DistributedExecutorService;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
 import org.jboss.infinispan.demo.distexec.LoadTransactionsDistributedCallable;
@@ -112,22 +111,38 @@ public class TransactionService {
 		System.out.println("Starting Distributed loading task...");
 		batchCounter = 0;
 		DistributedExecutorService des = new DefaultExecutorService(transactionCache);
+		DistributedExecutionCompletionService<Long> decs = new DistributedExecutionCompletionService<Long>(des);
 		LoadTransactionsDistributedCallable loaderCallable = new LoadTransactionsDistributedCallable();
 		
-		List<Future<Long>> results = des.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
-		
 		long i = 0;
+		
+		try {
+			decs.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
+			Future<Long> f = null;
+			//int counter = 0;
+			try {
+				while ((f = decs.poll(1, TimeUnit.MINUTES)) != null) {
+					i += f.get().longValue();
+					//counter++;
+				} 
+			} catch (Exception e) {
+				e.printStackTrace();
+				if (f != null) {
+					f.cancel(true);
+				}
+			}		
+		} finally {
+			des.shutdownNow();
+		}
+		
+		/*List<Future<Long>> results = des.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
 		for (Future<Long> f : results) {
 			try {
-				i += f.get(5L, TimeUnit.MINUTES);
-			} catch (TimeoutException e) {
-				System.err.println("Network timeout occured!");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
+				i += f.get(5L, TimeUnit.MINUTES).longValue();
+			} catch (Exception e) {
 				e.printStackTrace();
 			} 
-		}
+		}*/
 		
 		if (i > 0) {
 			end = System.currentTimeMillis();
@@ -150,7 +165,7 @@ public class TransactionService {
 		if (ct != null) {
 			NotifyingFuture<CustomerTransaction> response = remoteCache.putAsync(key, ct, 1, TimeUnit.DAYS); //.put(key, ct);
 			try {
-				ct = response.get();
+				ct = response.get(1L, TimeUnit.MINUTES);
 				System.out.println("Transaction " + ct.getTransactionid() + " saved to remote cache.");
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -186,7 +201,7 @@ public class TransactionService {
 			System.out.println("Loading batch of " + transactionBatch.size() + " transactions to remote cache.");
 			NotifyingFuture<Void> response = remoteCache.putAllAsync(transactionBatch, 1 , TimeUnit.DAYS);
 			try {
-				response.get();
+				response.get(5L, TimeUnit.MINUTES);
 				System.out.println("Loading done: " + response.isDone());
 			} catch (Exception e) {
 				e.printStackTrace();

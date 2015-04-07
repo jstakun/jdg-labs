@@ -28,11 +28,15 @@ public class LoadTransactionsDistributedCallable implements DistributedCallable<
 			throw new Exception("TransactionService is not available!");
 		}
 		
-		int i = tService.loadTransactionBatchToRemoteCache(inputKeys, 1000);
+		int i = 0;
 		
-		/*int i = 0;
+		try {
+			i = tService.loadTransactionBatchToRemoteCache(inputKeys, 1000);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
-		for (String key : inputKeys) {
+		/*for (String key : inputKeys) {
 			CustomerTransaction ct = transactionCache.get(key);
 			if (ct != null) {
 				tService.loadTransactionToRemoteCache(key);
