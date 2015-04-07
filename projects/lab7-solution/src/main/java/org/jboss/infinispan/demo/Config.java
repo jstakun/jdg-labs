@@ -11,7 +11,6 @@ import javax.enterprise.inject.Produces;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
-import org.infinispan.client.hotrod.marshall.ProtoStreamMarshaller;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
@@ -21,12 +20,6 @@ import org.jboss.infinispan.demo.model.Task;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
 
-/**
- * This class produces configured cache objects via CDI
- *  
- * @author tqvarnst
- *
- */
 @Singleton
 @Startup
 public class Config {
@@ -51,13 +44,16 @@ public class Config {
 	
 	@Produces
 	public RemoteCache<String, CustomerTransaction> getRemoteTransactionCache() {
-		ConfigurationBuilder builder = new ConfigurationBuilder();
+		/*ConfigurationBuilder builder = new ConfigurationBuilder();
 		builder.addServer().
 		    host("localhost").
 			port(11522).port(11622).//port(11722).
 			marshaller(new ProtoStreamMarshaller());
 		
-		RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());
+		RemoteCacheManager cacheManager = new RemoteCacheManager(builder.build());*/
+		
+		//hotrod-client.properties
+		RemoteCacheManager cacheManager = new RemoteCacheManager(true);
 		
 		try {
 			System.out.println("Registering protobuf schemas...");

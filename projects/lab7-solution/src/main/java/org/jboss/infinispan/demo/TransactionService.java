@@ -91,8 +91,8 @@ public class TransactionService {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Starting MapReduce task...");
-		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
+		System.out.println("Started MapReduce task...");
+		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache(), true)
 				.mappedWith(new TransactionMapper(o, limit))
 				.combinedWith(new TransactionReducer(TransactionReducer.Mode.COMBINE))
 				.reducedWith(new TransactionReducer(TransactionReducer.Mode.REDUCE))
@@ -109,13 +109,11 @@ public class TransactionService {
 		List<Future<Long>> results = des.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
 		
 		long i = 0;
-		int l = 0;
 		for (Future<Long> f : results) {
-			l++;
 			try {
 				i += f.get(5L, TimeUnit.MINUTES);
 			} catch (TimeoutException e) {
-				System.err.println("Network timeout occured. Please check if all transactions will be loaded to remote cache!");
+				System.err.println("Network timeout occured!");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -123,10 +121,12 @@ public class TransactionService {
 			} 
 		}
 		
-		if (l == results.size()-1) {
+		if (i > 0) {
 			end = System.currentTimeMillis();
 			System.out.println("Distributed task finished with status: " + i + " transactions loaded to remote cache in " + (end-start) + " milliseconds.");
-		} 
+		} else {
+			System.err.println("Please check if all transactions will be loaded to remote cache!");
+		}
 		
 		return transactions.size();
 	}
@@ -186,5 +186,9 @@ public class TransactionService {
 		}
 		
 		return transactionBatch.size();
+	}
+	
+	public void join() {
+		transactionCache.start();
 	}
 }
