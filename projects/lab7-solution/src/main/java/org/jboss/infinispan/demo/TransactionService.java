@@ -12,6 +12,8 @@ import java.util.concurrent.TimeoutException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.infinispan.AdvancedCache;
 import org.infinispan.client.hotrod.RemoteCache;
@@ -25,7 +27,6 @@ import org.jboss.infinispan.demo.mapreduce.TransactionReducer;
 
 import com.google.common.collect.Iterables;
 import com.redhat.waw.ose.model.CustomerTransaction;
-import com.redhat.waw.ose.persistence.CustomerProvider;
 
 @Stateless
 public class TransactionService {
@@ -36,6 +37,9 @@ public class TransactionService {
 	@Inject
 	RemoteCache<String, CustomerTransaction> remoteCache;
 	
+	@PersistenceContext(unitName = "eucustomers")
+    private EntityManager entityManager;
+	
 	private static int batchCounter = 0;
 	
 	public void generateTestTransaction(int count) {
@@ -44,9 +48,12 @@ public class TransactionService {
 		System.out.println("Starting loading transaction batch...");
 		Map<String, CustomerTransaction> ctbatch = new HashMap<String, CustomerTransaction>();
 		
-		List<String> customerids = new CustomerProvider().getCustomerIds();
-		System.out.println("Found " + customerids.size() + " customer profiles.");
+		if (entityManager == null) {
+			System.err.println("Entity Manager is not available!");
+		}
 		
+		List<String> customerids = new CustomerDataProvider(entityManager).getCustomerIds();
+		System.out.println("Found " + customerids.size() + " customer profiles.");
 		
 		for(int i=0;i<count;i++) {
 			String customerid = customerids.get(r.nextInt(customerids.size()));
@@ -99,10 +106,11 @@ public class TransactionService {
 				.execute();	
 		
 		long end = System.currentTimeMillis();
-		System.out.println("MapReduce task finished with status: " + transactions.size() + " transactions filtered in " + (end-start) + " milliseconds.");
+		System.out.println("MapReduce task finished with status: " + transactions.size() + " transactions filtered out in " + (end-start) + " milliseconds.");
 		start = end;
 		
 		System.out.println("Starting Distributed loading task...");
+		batchCounter = 0;
 		DistributedExecutorService des = new DefaultExecutorService(transactionCache);
 		LoadTransactionsDistributedCallable loaderCallable = new LoadTransactionsDistributedCallable();
 		
