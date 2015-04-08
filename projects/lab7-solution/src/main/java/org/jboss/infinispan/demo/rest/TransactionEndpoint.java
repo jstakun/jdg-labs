@@ -52,6 +52,6 @@ public class TransactionEndpoint {
 	@Produces("application/json")
 	public Response join() {
 		tService.join();
-		return Response.status(200).entity(new Status(200, "Cache joined")).build();
+		return Response.status(200).entity(new Status(200, "Sucessfully joined JDG cluster")).build();
 	}
 }

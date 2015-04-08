@@ -121,7 +121,7 @@ public class TransactionService {
 			Future<Long> f = null;
 			//int counter = 0;
 			try {
-				while ((f = decs.poll(1, TimeUnit.MINUTES)) != null) {
+				while ((f = decs.poll(30, TimeUnit.SECONDS)) != null) {
 					i += f.get().longValue();
 					//counter++;
 				} 
