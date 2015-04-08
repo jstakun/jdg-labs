@@ -8,30 +8,39 @@ import javax.naming.InitialContext;
 
 import org.infinispan.Cache;
 import org.infinispan.distexec.DistributedCallable;
-import org.jboss.infinispan.demo.TransactionService;
+import org.infinispan.distexec.DistributedTaskFailoverPolicy;
+import org.infinispan.distexec.FailoverContext;
+import org.infinispan.remoting.transport.Address;
+import org.jboss.infinispan.demo.RemoteCacheLoader;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
 
-public class LoadTransactionsDistributedCallable implements DistributedCallable<String, CustomerTransaction, Long>, Serializable {
+public class LoadTransactionsDistributedCallable implements DistributedCallable<String, CustomerTransaction, Long>, Serializable, DistributedTaskFailoverPolicy {
 
 	private static final long serialVersionUID = 1L;
 	//private Cache<String, CustomerTransaction> transactionCache;
 	private Set<String> inputKeys;
 	
+	private int batchSize;
+	
+	public LoadTransactionsDistributedCallable(int batchSize) {
+		this.batchSize = batchSize;
+	}
+	
 	@Override
 	public Long call() throws Exception {
 			
 		InitialContext ctx = new InitialContext();
-		TransactionService tService = (TransactionService)ctx.lookup("java:global/mytodo/TransactionService");
+		RemoteCacheLoader loader = (RemoteCacheLoader)ctx.lookup("java:global/mytodo/RemoteCacheLoader");
 		
-		if (tService == null) {
-			throw new Exception("TransactionService is not available!");
+		if (loader == null) {
+			throw new Exception("Remote Cache Loader is not available!");
 		}
 		
 		int i = 0;
 		
 		try {
-			i = tService.loadTransactionBatchToRemoteCache(inputKeys, 1000);
+			i = loader.loadTransactionBatchToRemoteCache(inputKeys, batchSize);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -52,5 +61,16 @@ public class LoadTransactionsDistributedCallable implements DistributedCallable<
 	public void setEnvironment(Cache<String, CustomerTransaction> transactionCache, Set<String> inputKeys) {
 		//this.transactionCache = transactionCache;		
 		this.inputKeys = Collections.synchronizedSet(inputKeys);
+	}
+
+	@Override
+	public Address failover(FailoverContext context) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int maxFailoverAttempts() {
+		return 2;
 	}
 }

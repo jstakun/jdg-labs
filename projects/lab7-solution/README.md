@@ -2,13 +2,13 @@
 
 ## EAP 6 Setup
 
-1. Install EAP 6.3
+1. Install EAP 6.3.
 
-2. Install Red Hat JBoss Data Grid 6.4.1 Library Module for JBoss EAP 6 
+2. Install Red Hat JBoss Data Grid 6.4.1 Library Module for JBoss EAP 6.
 
-3. Install Red Hat JBoss Data Grid 6.4.1 Hot Rot Java Client Module for JBoss EAP 6
+3. Install Red Hat JBoss Data Grid 6.4.1 Hot Rot Java Client Module for JBoss EAP 6.
 
-4. Install this application
+4. Install this application.
 
 ```
 mvn jboss-as:deploy
@@ -16,9 +16,9 @@ mvn jboss-as:deploy
 
 ## Remote Distributed cache setup
 
-1. Install Red Hat JBoss Data Grid 6.4.1 Server
+1. Install Red Hat JBoss Data Grid 6.4.1 Server.
 
-2. Configure distributed cache in $JDG_HOME/standalone/configuration/clustered.xml
+2. Configure distributed cache in $JDG_HOME/standalone/configuration/clustered.xml.
 
 ```
 <distributed-cache name="default" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
@@ -51,9 +51,9 @@ $JBOSS_HOME/bin/standalone.sh -Djboss.server.base.dir=/opt/jboss/machine2/ --ser
 
 3. Go to http://host:8080/mytodo/rest/transactions/gentestdata/10 to generate 10 test transactions. You could change 10 with any other number.
 
-4. Go to http://jdv:8080/mytodo/rest/transactions/filter/amount/G/500 to execute M/R and distributed tasks. You could change G with G, GE, E, LE, L, and 500 with any number between 1 and 1000
+4. Go to http://jdv:8080/mytodo/rest/transactions/filter/amount/G/500 to execute M/R and distributed tasks. You could change G with G, GE, E, LE, L, and 500 with any number between 1 and 1000.
 
-5. Check Distributed cache stats to verify if filtered transactions were loaded to remote Data Grid
+5. Check Distributed cache stats to verify if filtered transactions were loaded to remote Data Grid.
 
 ```
 $JDG_HOME/bin/cli.sh
@@ -67,4 +67,4 @@ Statistics: {
 }
 ```
 
-6. Connect with JBoss Data Virtualization to remote Data Grid to query for transactions
+6. Connect with JBoss Data Virtualization to remote Data Grid to query for transactions.
