@@ -28,7 +28,7 @@ public class RemoteCacheLoader {
 	@Inject
 	RemoteCache<String, CustomerTransaction> remoteCache;
 
-	public void loadTransactionToRemoteCache(String key) {
+	/*public void loadTransactionToRemoteCache(String key) {
 		CustomerTransaction ct = transactionCache.get(key);
 		if (ct != null) {
 			NotifyingFuture<CustomerTransaction> response = remoteCache.putAsync(key, ct, 1, TimeUnit.DAYS); //.put(key, ct);
@@ -39,10 +39,12 @@ public class RemoteCacheLoader {
 				e.printStackTrace();
 			}
 		}
-	}
+	}*/
 	
 	public int loadTransactionBatchesToRemoteCache(Set<String> keys, int size) {
 		int i = 0;
+		batchCounter = 0;
+		transactionsCounter = 0;
 		int transactionCount = keys.size();
 		int batchCount = (transactionCount/size + 1);
 		System.out.println(batchCount + " batches will be loaded to remote cache...");
@@ -66,8 +68,7 @@ public class RemoteCacheLoader {
 		    }
 		    if (transactionBatch.size() >= count) {
 		    	break;
-		    }
-		    
+		    }    
 		}
 		
 		if (!transactionBatch.isEmpty()) {
