@@ -66,13 +66,6 @@ public class TransactionService {
 	}
 	
 	private void putTransactionBatchToLocalCache(Map<String, CustomerTransaction> ctbatch) {
-		/*NotifyingFuture<Void> response = transactionCache.putAllAsync(ctbatch, 1, TimeUnit.DAYS);
-		try {
-			response.get();
-			System.out.println("Loaded " + ctbatch.size() + " transactions: " + response.isDone());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}*/
 		transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
 		System.out.println("Loaded " + ctbatch.size() + " transactions.");
 	}
@@ -92,7 +85,7 @@ public class TransactionService {
 		if (!transactions.keySet().isEmpty()) {
 			distExecRunner.execLoadTransactions(transactions.keySet());
 		} else {
-			System.out.println("No transaction available to be loaded to distributed cache");
+			System.out.println("No transaction available to be loaded to distributed cache.");
 		}
 		
 		return transactions.size();

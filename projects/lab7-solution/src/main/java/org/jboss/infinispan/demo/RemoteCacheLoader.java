@@ -20,6 +20,7 @@ import com.redhat.waw.ose.model.CustomerTransaction;
 public class RemoteCacheLoader {
 	
 	private static int batchCounter = 0;
+	private static int transactionsCounter = 0;
 	
 	@Inject
 	AdvancedCache<String, CustomerTransaction> transactionCache;
@@ -40,13 +41,18 @@ public class RemoteCacheLoader {
 		}
 	}
 	
-	public int loadTransactionBatchToRemoteCache(Set<String> keys, int size) {
+	public int loadTransactionBatchesToRemoteCache(Set<String> keys, int size) {
 		int i = 0;
+		int transactionCount = keys.size();
+		int batchCount = (size/transactionCount + 1);
+		System.out.println(batchCount + " batches will be loaded to remote cache...");
 		for (List<String> partition : Iterables.partition(keys, size)) {
 			int batchSize = loadTransactionBatchToRemoteCache(size, partition);
-			System.out.println("Loaded " + batchSize + " transactions to remote cache in batch " + (++batchCounter) + ".");
+			transactionsCounter += batchSize;
+			System.out.println("Loaded (" + transactionsCounter + "/" + transactionCount + ") transactions to remote cache in (" + (++batchCounter) + "/" + batchCount + ") batches.");
 			i += batchSize;
 		}
+		System.out.println("Loaded " + batchCount + " batches to remote cache.");
 		return i;
 	}
 	
@@ -83,6 +89,8 @@ public class RemoteCacheLoader {
 		
 		try {
 			response.get();
+			batchCounter = 0;
+			transactionsCounter = 0;
 			System.out.println("Remote cache prepared: " + response.isDone());
 		} catch (Exception e) {
 			e.printStackTrace();

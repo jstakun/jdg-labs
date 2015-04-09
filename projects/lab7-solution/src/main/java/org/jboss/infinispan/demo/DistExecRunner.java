@@ -11,8 +11,9 @@ import javax.inject.Inject;
 
 import org.infinispan.AdvancedCache;
 import org.infinispan.distexec.DefaultExecutorService;
-import org.infinispan.distexec.DistributedExecutionCompletionService;
 import org.infinispan.distexec.DistributedExecutorService;
+import org.infinispan.distexec.DistributedTask;
+import org.infinispan.distexec.DistributedTaskBuilder;
 import org.jboss.infinispan.demo.distexec.LoadTransactionsDistributedCallable;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
@@ -23,6 +24,8 @@ public class DistExecRunner {
 
 	private static final int BATCH_SIZE = 1000;
 	
+	private static boolean isRunning = false;
+	
 	@Inject
 	AdvancedCache<String, CustomerTransaction> transactionCache;
 
@@ -30,29 +33,36 @@ public class DistExecRunner {
 	RemoteCacheLoader remoteCacheLoader;
 	
 	public void execLoadTransactions(Set<String> transactions) {
+		isRunning = true;
 		remoteCacheLoader.clear();
 		
 		System.out.println("Starting Distributed loading task...");
 		long start = System.currentTimeMillis();
 		DistributedExecutorService des = new DefaultExecutorService(transactionCache);
-		DistributedExecutionCompletionService<Long> decs = new DistributedExecutionCompletionService<Long>(des);
+		//DistributedExecutionCompletionService<Long> decs = new DistributedExecutionCompletionService<Long>(des);
+		
 		LoadTransactionsDistributedCallable loaderCallable = new LoadTransactionsDistributedCallable(BATCH_SIZE);
 	
-		//DistributedTaskBuilder<Long> taskBuilder = des.createDistributedTaskBuilder(loaderCallable);
-		//taskBuilder.failoverPolicy(DefaultExecutorService.RANDOM_NODE_FAILOVER);
-		//DistributedTask<Long> distributedTask = taskBuilder.build();
+		//long timeout = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeout();
+		//String timeunit = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeUnit().name();		
+		//System.out.println("RpcManager timeout is " + timeout + " " + timeunit);
+		
+		DistributedTaskBuilder<Long> taskBuilder = des.createDistributedTaskBuilder(loaderCallable);
+		DistributedTask<Long> distributedTask = 
+				taskBuilder.failoverPolicy(DefaultExecutorService.NO_FAILOVER).
+							timeout(1L, TimeUnit.MINUTES).
+							build();
 		
 		long i = 0;
 		int size = transactions.size();
 		
-		try {
+		/*try {
 			List<Future<Long>> results = decs.submitEverywhere(loaderCallable, transactions.toArray(new String[size]));
 			System.out.println("Started " + results.size() + " remote tasks...");
 			Future<Long> f = null;
 			for(int j=0;j<results.size();j++) {
 				try {
 					f = decs.take(); //decs.poll(10, TimeUnit.SECONDS);
-					System.out.println("Task " + (j+1) + " has been taken.");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}	
@@ -60,33 +70,41 @@ public class DistExecRunner {
 				try {
 					if (f != null) {
 						i += f.get().longValue();
-					} 
+						System.out.println("Task " + (j+1) + " has been finished.");
+					} else {
+						System.err.println("Task " + (j+1) + " might have failed!");
+					}
 				} catch (Exception e) {
+					System.err.println("Task " + (j+1) + " might have failed! Check error log:");
 					e.printStackTrace();
 				}	 
 			}
-			System.out.println("Finished remote task processing.");
+			System.out.println("Finished remote tasks processing.");
+		} finally {
+			des.shutdownNow();
+		}*/
+		
+		try {
+			List<Future<Long>> results = des.submitEverywhere(distributedTask, transactions.toArray(new String[size]));
+			System.out.println("Started " + results.size() + " remote tasks...");
+			for(int j=0;j<results.size();j++) {
+				try {
+					Future<Long> f = results.get(j);
+					if (f != null) {
+						i += f.get().longValue();
+						System.out.println("Task " + (j+1) + " has been finished.");
+					} else {
+						System.err.println("Task " + (j+1) + " might have failed!");
+					}
+				} catch (Exception e) {
+					System.err.println("Task " + (j+1) + " might have failed! Check error log:");
+					e.printStackTrace();
+				}
+			}
+			System.out.println("Finished remote tasks processing.");
 		} finally {
 			des.shutdownNow();
 		}
-	
-		/*List<Future<Long>> results = des.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
-		for (Future<Long> f : results) {
-			try {
-				i += f.get(5L, TimeUnit.MINUTES).longValue();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} 
-		}*/
-		
-		/*List<Future<Long>> results = decs.submitEverywhere(loaderCallable, transactions.keySet().toArray(new String[transactions.keySet().size()]));
-		for (Future<Long> f : results) {
-			try {
-				i += f.get(5L, TimeUnit.MINUTES).longValue();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} 
-		}*/
 	
 		if (i > 0) {
 			long end = System.currentTimeMillis();
@@ -94,5 +112,13 @@ public class DistExecRunner {
 		} else {
 			System.err.println("Please check if all transactions will be loaded to remote cache!");
 		}
+		
+		isRunning = false;
 	}
+	
+	
+	public boolean isRunning() {
+		return isRunning;
+	}
+	
 }

@@ -40,7 +40,7 @@ public class LoadTransactionsDistributedCallable implements DistributedCallable<
 		int i = 0;
 		
 		try {
-			i = loader.loadTransactionBatchToRemoteCache(inputKeys, batchSize);
+			i = loader.loadTransactionBatchesToRemoteCache(inputKeys, batchSize);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
