@@ -33,7 +33,7 @@ mvn jboss-as:deploy
 </distributed-cache>
 ```
 
-## Running this demo
+## Running JDG part of this demo
 
 1. Start multiple JBoss Data Grid instances in clustered mode i.e.
 
@@ -107,8 +107,23 @@ Statistics: {
 ```
 
 5. Install CustomersTransactions virtual database located in this project: https://github.com/jstakun/datavirt/tree/master/Customers
-   (You'll need to create EUCustomers data source)
+   (You'll need to create EUCustomers data source).
    
-For more details for this section please have a look a JDV jdg-remote-cache quickstart: 
+For more details for this section please have a look a JDV jdg-remote-cache quickstart at 
 https://github.com/teiid/teiid-quickstarts/blob/master/jdg-remote-cache/
+  
+## Running JDV part of this demo
+
+1. Start JDV server
+
+2. Using SQL client connect to CustomerTransactions virtual database and execute sample queries.
+
+```
+SELECT count(*) as total FROM TransactionsView.Transactions
+
+SELECT sum(amount) as total, country FROM TransactionsView.Transactions group by country order by total desc
+
+SELECT sum(amount) as total, customerid, firstname, lastname, country, city FROM TransactionsView.Transactions group by customerid, firstname, lastname, country, city order by total desc
+```
+
   
