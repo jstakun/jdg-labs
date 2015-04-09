@@ -44,7 +44,7 @@ public class RemoteCacheLoader {
 	public int loadTransactionBatchesToRemoteCache(Set<String> keys, int size) {
 		int i = 0;
 		int transactionCount = keys.size();
-		int batchCount = (size/transactionCount + 1);
+		int batchCount = (transactionCount/size + 1);
 		System.out.println(batchCount + " batches will be loaded to remote cache...");
 		for (List<String> partition : Iterables.partition(keys, size)) {
 			int batchSize = loadTransactionBatchToRemoteCache(size, partition);
