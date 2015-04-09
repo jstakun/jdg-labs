@@ -17,18 +17,25 @@ public class TransactionMapper implements Mapper<String, CustomerTransaction, St
 	
 	private static final long serialVersionUID = 1L;
 	
-	public TransactionMapper(Operator o, double limit) {
+	private boolean echo = false;
+	
+	public TransactionMapper(Operator o, double limit, boolean echo) {
 		this.o = o;
 		this.limit = limit;
+		this.echo = echo;
 	}
 
 	@Override
 	public void map(String key, CustomerTransaction ct, Collector<String, Integer> collector) {
 		if (compare(ct.getAmount())) {
-			//System.out.println("Transaction " + key + " meets comparison criteria.");
+			if (echo) {
+				System.out.println("Transaction " + key + " meet comparison criteria.");
+			}	
 			collector.emit(key, 1);
 		} else {
-			//System.out.println("Transaction " + key + " doesn't meet comparison criteria.");
+			if (echo) {
+				System.out.println("Transaction " + key + " doesn't meet comparison criteria.");
+			}
 		}
 	}
 	

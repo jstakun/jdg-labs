@@ -10,10 +10,14 @@ public class TransactionReducer implements Reducer<String, Integer>, Serializabl
 	public enum Mode {COMBINE, REDUCE};
 	
 	private static final long serialVersionUID = 1L;
+	
 	private Mode mode;
 	
-	public TransactionReducer(Mode mode) {
+	private boolean echo = false;
+	
+	public TransactionReducer(Mode mode, boolean echo) {
 		this.mode = mode;
+		this.echo = echo;
 	}
 	
 	@Override
@@ -24,11 +28,13 @@ public class TransactionReducer implements Reducer<String, Integer>, Serializabl
 			sum += i;
 		}
 		
-		/*if (mode == Mode.COMBINE) {
-			System.out.println("Reduce task executed for key " + reducedKey + " on the child node.");
-		} else if (mode == Mode.REDUCE) {
-			System.out.println("Reduce task executed for key " + reducedKey + " on the master node.");
-		}*/
+		if (echo) {
+			if (mode.equals(Mode.COMBINE)) {
+				System.out.println("Combine task executed for key " + reducedKey);
+			} else if (mode.equals(Mode.REDUCE)) {
+				System.out.println("Reduce task executed for key " + reducedKey);
+			}
+		}
 		
 		return sum;
 	}

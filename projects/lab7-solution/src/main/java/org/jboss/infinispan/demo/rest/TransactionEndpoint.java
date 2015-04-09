@@ -2,10 +2,12 @@ package org.jboss.infinispan.demo.rest;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.jboss.infinispan.demo.TransactionService;
@@ -23,8 +25,9 @@ public class TransactionEndpoint {
 	@GET
 	@Path("/filter/amount/{operator}/{limit}")
 	@Produces("application/json")
-	public Response filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit) {
-		Integer count = tService.filterTransactionAmount(o, limit);
+	public Response filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit,
+			@DefaultValue("false") @QueryParam("echo") boolean echo) {
+		Integer count = tService.filterTransactionAmount(o, limit, echo);
 		return Response.status(200).entity(new Status(200, "Filtered " + count + " transactions")).build();
 	}
 	

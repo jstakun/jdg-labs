@@ -63,13 +63,22 @@ public class TransactionService {
 		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded in " + (end-start) + " milliseconds.");
 	}
 	
-	public int filterTransactionAmount(TransactionMapper.Operator o, double limit) {
+	public int filterTransactionAmount(TransactionMapper.Operator o, double limit, boolean echo) {
+		if (echo) {
+			System.out.println("Echo is set to true.");
+		}
+		
+		long timeout = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeout();
+		String timeunit = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeUnit().name();
+		
+		System.out.println("DistExec timeout is set to " + timeout + " " + timeunit);
+		
 		System.out.println("Started MapReduce task...");
 		long start = System.currentTimeMillis();
-		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache(), true)
-				.mappedWith(new TransactionMapper(o, limit))
-				.combinedWith(new TransactionReducer(TransactionReducer.Mode.COMBINE))
-				.reducedWith(new TransactionReducer(TransactionReducer.Mode.REDUCE))
+		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
+				.mappedWith(new TransactionMapper(o, limit, echo))
+				//.combinedWith(new TransactionReducer(TransactionReducer.Mode.COMBINE, echo))
+				.reducedWith(new TransactionReducer(TransactionReducer.Mode.REDUCE, echo))
 				.execute();	
 		
 		long end = System.currentTimeMillis();

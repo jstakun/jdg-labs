@@ -126,7 +126,8 @@ public class Config {
 		
 		org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
 		        .jmxStatistics().enable() // Enable JMX statistics
-				.clustering().cacheMode(CacheMode.DIST_SYNC) // Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
+				.clustering().cacheMode(CacheMode.DIST_SYNC)// Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
+				.sync().replTimeout(1, TimeUnit.MINUTES) //dist exec timout increased
 				.hash().numOwners(2) // Keeps two copies of each key/value pair
 				.expiration().lifespan(1,TimeUnit.DAYS) // Set expiration - cache entries expire after some time (given by
 				// the lifespan parameter) and are removed from the cache (cluster-wide).
