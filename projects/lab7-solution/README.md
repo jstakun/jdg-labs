@@ -1,6 +1,6 @@
 # EAP and JBoss Data Grid Map/Reduce and distributed tasks execution demo 
 
-![Realtime Big Data Analytics](https://raw.githubusercontent.com/jstakun/jdg-labs/tree/master/projects/lab7-solution/bd_arch.jpg "Realtime Big Data Analytics")
+![Realtime Big Data Analytics](https://raw.githubusercontent.com/jstakun/jdg-labs/master/projects/lab7-solution/bd_arch.jpg "Realtime Big Data Analytics")
 
 ## EAP 6 Setup
 
