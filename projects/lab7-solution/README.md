@@ -68,5 +68,6 @@ Statistics: {
 ...
 }
 ```
+## JBoss Data Virtualization setup
 
-6. Connect with JBoss Data Virtualization to remote Data Grid to query for transactions.
+1. TODO Connect with JBoss Data Virtualization to remote Data Grid to query for transactions.
