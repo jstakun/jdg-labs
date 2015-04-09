@@ -51,23 +51,16 @@ public class TransactionService {
     		t.setTransactionid(customerid + "_" + t.getTransactionDate() + "_" + i);
     		t.setCustomerid(customerid);
     		t.setAmount(r.nextDouble() * 1000d);
-    		//transactionCache.put(t.getTransactionid(), t);
     		ctbatch.put(t.getTransactionid(), t);
 			
-			if (i > 0 && i % 1000 == 0) {
-				putTransactionBatchToLocalCache(ctbatch);
+			if ((i > 0 && i % 1000 == 0) || (i == count-1 && !ctbatch.isEmpty())) {
+				transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
 				ctbatch.clear();
-			} else if (i == count-1 && !ctbatch.isEmpty()) {
-				putTransactionBatchToLocalCache(ctbatch);
-			}
+				System.out.println("Loaded (" + (i+1) + "/" + count + ") transactions.");
+			} 
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded in " + (end-start) + " milliseconds.");
-	}
-	
-	private void putTransactionBatchToLocalCache(Map<String, CustomerTransaction> ctbatch) {
-		transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
-		System.out.println("Loaded " + ctbatch.size() + " transactions.");
 	}
 	
 	public int filterTransactionAmount(TransactionMapper.Operator o, double limit) {

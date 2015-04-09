@@ -53,7 +53,7 @@ $JBOSS_HOME/bin/standalone.sh -Djboss.server.base.dir=/opt/jboss/machine2/ --ser
 
 3. Go to http://host:8080/mytodo/rest/transactions/gentestdata/10 to generate 10 test transactions. You could change 10 with any other number.
 
-4. Go to http://jdv:8080/mytodo/rest/transactions/filter/amount/G/500 to execute M/R and distributed tasks. You could change G with G, GE, E, LE, L, and 500 with any number between 1 and 1000.
+4. Go to http://host:8080/mytodo/rest/transactions/filter/amount/G/500 to execute M/R and distributed tasks. You could change G with G, GE, E, LE, L, and 500 with any number between 1 and 1000.
 
 5. Check Distributed cache stats to verify if filtered transactions were loaded to remote Data Grid.
 
@@ -70,4 +70,45 @@ Statistics: {
 ```
 ## JBoss Data Virtualization setup
 
-1. TODO Connect with JBoss Data Virtualization to remote Data Grid to query for transactions.
+1. Install JDV 6.1 on top of EAP 6.3
+
+2. Create JBoss module containing CustomerTransaction POJO, CustomerMarschaller class and customer.proto file and install to EAP.
+
+3. Install Red Hat JBoss Data Grid 6.4.1 Hot Rot Java Client Module for JBoss EAP 6.
+
+4. Configure JDG resource adapter at $JDV_HOME/jboss-eap-6.3/standalone/configuration/standalone.xml
+
+```
+<resource-adapter id="infinispanRemQSDSL">
+   <module slot="main" id="org.jboss.teiid.resource-adapter.infinispan.dsl"/>
+   <connection-definitions>
+      <connection-definition class-name="org.teiid.resource.adapter.infinispan.dsl.InfinispanManagedConnectionFactory" jndi-name="java:/infinispanRemoteDSL" enabled="true" use-java-context="true" pool-name="infinispanRemoteDSL">
+           <config-property name="CacheTypeMap">
+                  default:com.redhat.waw.ose.model.CustomerTransaction;transactionid
+           </config-property>
+           <config-property name="ProtobufDefinitionFile">
+                  /protony/customer.proto
+           </config-property>
+           <config-property name="Module">
+                  com.redhat.waw.ose.model
+           </config-property>
+           <config-property name="MessageDescriptor">
+                  protony.CustomerTransaction
+           </config-property>
+           <config-property name="MessageMarshallers">
+                  com.redhat.waw.ose.model.Customer:com.redhat.waw.ose.model.CustomerMarshaller,com.redhat.waw.ose.model.CustomerTransaction:com.redhat.waw.ose.model.CustomerTransactionMarshaller
+           </config-property>
+           <config-property name="RemoteServerList">
+                  127.0.0.1:11522;127.0.0.1:11622
+           </config-property>
+      </connection-definition>
+   </connection-definitions>
+</resource-adapter>
+```
+
+5. Install CustomersTransactions virtual database located in this project: https://github.com/jstakun/datavirt/tree/master/Customers
+   (You'll need to create EUCustomers data source)
+   
+For more details for this section please have a look a JDV jdg-remote-cache quickstart: 
+https://github.com/teiid/teiid-quickstarts/blob/master/jdg-remote-cache/
+  
