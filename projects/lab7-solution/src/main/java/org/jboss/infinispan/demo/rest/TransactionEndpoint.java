@@ -11,7 +11,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.jboss.infinispan.demo.TransactionService;
-import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
+import org.jboss.infinispan.demo.mapreduce.TransactionAmountCompareMapper;
 
 import com.redhat.waw.ose.model.Status;
 
@@ -25,9 +25,18 @@ public class TransactionEndpoint {
 	@GET
 	@Path("/filter/amount/{operator}/{limit}")
 	@Produces("application/json")
-	public Response filterTransactions(@PathParam("operator") TransactionMapper.Operator o, @PathParam("limit") double limit,
+	public Response filterTransactionsAmountCompare(@PathParam("operator") TransactionAmountCompareMapper.Operator o, @PathParam("limit") double limit,
 			@DefaultValue("false") @QueryParam("echo") boolean echo) {
-		Integer count = tService.filterTransactionAmount(o, limit, echo);
+		Integer count = tService.filterTransactionAmountCompare(o, limit, echo);
+		return Response.status(200).entity(new Status(200, "Filtered " + count + " transactions")).build();
+	}
+	
+	@GET
+	@Path("/filter/amount/between/{min}/{max}")
+	@Produces("application/json")
+	public Response filterTransactionsAmountBetween(@PathParam("min") double min, @PathParam("max") double max,
+			@DefaultValue("false") @QueryParam("echo") boolean echo) {
+		Integer count = tService.filterTransactionAmountBetween(min, max, echo);
 		return Response.status(200).entity(new Status(200, "Filtered " + count + " transactions")).build();
 	}
 	

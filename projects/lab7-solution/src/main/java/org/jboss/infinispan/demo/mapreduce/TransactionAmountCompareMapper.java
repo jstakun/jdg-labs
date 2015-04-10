@@ -7,7 +7,7 @@ import org.infinispan.distexec.mapreduce.Mapper;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
 
-public class TransactionMapper implements Mapper<String, CustomerTransaction, String, Integer>, Serializable {
+public class TransactionAmountCompareMapper implements Mapper<String, CustomerTransaction, String, Integer>, Serializable {
 
 	public enum Operator {G, GE, E, LE, L};
 	
@@ -19,7 +19,7 @@ public class TransactionMapper implements Mapper<String, CustomerTransaction, St
 	
 	private boolean echo = false;
 	
-	public TransactionMapper(Operator o, double limit, boolean echo) {
+	public TransactionAmountCompareMapper(Operator o, double limit, boolean echo) {
 		this.o = o;
 		this.limit = limit;
 		this.echo = echo;

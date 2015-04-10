@@ -13,7 +13,9 @@ import javax.persistence.PersistenceContext;
 
 import org.infinispan.AdvancedCache;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
-import org.jboss.infinispan.demo.mapreduce.TransactionMapper;
+import org.infinispan.distexec.mapreduce.Mapper;
+import org.jboss.infinispan.demo.mapreduce.TransactionAmountBetweenMapper;
+import org.jboss.infinispan.demo.mapreduce.TransactionAmountCompareMapper;
 import org.jboss.infinispan.demo.mapreduce.TransactionReducer;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
@@ -63,7 +65,17 @@ public class TransactionService {
 		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded in " + (end-start) + " milliseconds.");
 	}
 	
-	public int filterTransactionAmount(TransactionMapper.Operator o, double limit, boolean echo) {
+	public int filterTransactionAmountCompare(TransactionAmountCompareMapper.Operator o, double limit, boolean echo) {
+		Mapper<String, CustomerTransaction, String, Integer> transactionMapper = new TransactionAmountCompareMapper(o, limit, echo);
+		return filterTransactions(transactionMapper, echo);
+	}
+	
+	public int filterTransactionAmountBetween(double min, double max, boolean echo) {
+		Mapper<String, CustomerTransaction, String, Integer> transactionMapper = new TransactionAmountBetweenMapper(min, max, echo);
+		return filterTransactions(transactionMapper, echo);
+	}
+	
+	private int filterTransactions(Mapper<String, CustomerTransaction, String, Integer> transactionMapper, boolean echo) {
 		if (echo) {
 			System.out.println("Echo is set to true.");
 		}
@@ -76,7 +88,7 @@ public class TransactionService {
 		System.out.println("Started MapReduce task...");
 		long start = System.currentTimeMillis();
 		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
-				.mappedWith(new TransactionMapper(o, limit, echo))
+				.mappedWith(transactionMapper)
 				//.combinedWith(new TransactionReducer(TransactionReducer.Mode.COMBINE, echo))
 				.reducedWith(new TransactionReducer(TransactionReducer.Mode.REDUCE, echo))
 				.execute();	
