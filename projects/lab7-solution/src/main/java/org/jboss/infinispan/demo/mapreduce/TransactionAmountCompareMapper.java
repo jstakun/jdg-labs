@@ -40,16 +40,16 @@ public class TransactionAmountCompareMapper implements Mapper<String, CustomerTr
 	}
 	
 	private boolean compare(double amount) {
-		if (o == Operator.G) {
+		if (o.equals(Operator.G)) {
 			return amount > limit;
-		} else if (o == Operator.GE) {
+		} else if (o.equals(Operator.GE)) {
 			return amount >= limit;
-		} else if (o == Operator.E) {
+		} else if (o.equals(Operator.E)) {
 			return amount == limit;
-		} else if (o == Operator.LE) {
-			return amount >= limit;
-		} else if (o == Operator.L) {
-			return amount >= limit;
+		} else if (o.equals(Operator.LE)) {
+			return amount <= limit;
+		} else if (o.equals(Operator.L)) {
+			return amount < limit;
 		} else {
 			//default is Greater 
 			return amount > limit;
