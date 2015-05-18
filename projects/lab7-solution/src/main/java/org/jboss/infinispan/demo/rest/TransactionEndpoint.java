@@ -59,11 +59,20 @@ public class TransactionEndpoint {
 		return Response.status(200).entity(new Status(200, "Cache cleared: " + isClear)).build();
 	}
 	
+	//@GET
+	//@Path("/join")
+	//@Produces("application/json")
+	//public Response join() {
+	//	tService.join();
+	//	return Response.status(200).entity(new Status(200, "Successfully joined JDG cluster")).build();
+	//}
+	
 	@GET
-	@Path("/join")
+	@Path("/size")
 	@Produces("application/json")
-	public Response join() {
-		tService.join();
-		return Response.status(200).entity(new Status(200, "Successfully joined JDG cluster")).build();
+	public Response getSize() {
+		int[] size = tService.getSize();
+		return Response.status(200).entity(new Status(200, "Cache contains " + size[0] + " entries and " + size[1] + " primary entries")).build();
 	}
 }
+

@@ -3,6 +3,7 @@ package org.jboss.infinispan.demo;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -75,7 +76,7 @@ public class Config {
 	@ApplicationScoped
 	public org.infinispan.AdvancedCache<Long, String> getLocalRequestCache() {
 		//Cache<Long,String> basicCache = getLocalCacheManager().getCache("client-request-cache",true);
-		 org.infinispan.Cache<Long,String> basicCache = getLocalCacheManager().getCache("stats", true);
+		org.infinispan.Cache<Long,String> basicCache = getLocalCacheManager().getCache("stats", true);
 		return basicCache.getAdvancedCache();
 	}
 	
@@ -134,5 +135,11 @@ public class Config {
 				.build();
 				
         return new DefaultCacheManager(glob, loc, true);
+	}
+	
+	@PostConstruct
+    public void initialize() {
+		getLocalTransactionCache().start();
+		System.out.println("Transaction cache status: " + getLocalTransactionCache().getStatus().toString());
 	}
 }

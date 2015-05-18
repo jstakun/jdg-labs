@@ -86,7 +86,7 @@ public class DistExecRunner {
 		
 		try {
 			List<Future<Long>> results = des.submitEverywhere(distributedTask, transactions.toArray(new String[size]));
-			System.out.println("Started " + results.size() + " remote tasks...");
+			System.out.println("Started " + results.size() + " remote tasks.");
 			for(int j=0;j<results.size();j++) {
 				try {
 					Future<Long> f = results.get(j);

@@ -14,6 +14,7 @@ import javax.persistence.PersistenceContext;
 import org.infinispan.AdvancedCache;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
 import org.infinispan.distexec.mapreduce.Mapper;
+import org.infinispan.remoting.transport.Address;
 import org.jboss.infinispan.demo.mapreduce.TransactionAmountBetweenMapper;
 import org.jboss.infinispan.demo.mapreduce.TransactionAmountCompareMapper;
 import org.jboss.infinispan.demo.mapreduce.TransactionReducer;
@@ -78,14 +79,12 @@ public class TransactionService {
 	private int filterTransactions(Mapper<String, CustomerTransaction, String, Integer> transactionMapper, boolean echo) {
 		if (echo) {
 			System.out.println("Echo is set to true.");
+			long timeout = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeout();
+			String timeunit = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeUnit().name();
+			System.out.println("DistExec timeout is set to " + timeout + " " + timeunit);
 		}
 		
-		long timeout = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeout();
-		String timeunit = transactionCache.getRpcManager().getDefaultRpcOptions(true).timeUnit().name();
-		
-		System.out.println("DistExec timeout is set to " + timeout + " " + timeunit);
-		
-		System.out.println("Started MapReduce task...");
+		System.out.println("Started Map Reduce task...");
 		long start = System.currentTimeMillis();
 		Map<String, Integer> transactions = new MapReduceTask<String, CustomerTransaction, String, Integer>(transactionCache.getAdvancedCache())
 				.mappedWith(transactionMapper)
@@ -94,7 +93,7 @@ public class TransactionService {
 				.execute();	
 		
 		long end = System.currentTimeMillis();
-		System.out.println("MapReduce task finished with status: " + transactions.size() + " transactions filtered out in " + (end-start) + " milliseconds.");
+		System.out.println("Map Reduce task finished with status: " + transactions.size() + " transactions filtered out in " + (end-start) + " milliseconds.");
 		
 		if (!transactions.keySet().isEmpty()) {
 			distExecRunner.execLoadTransactions(transactions.keySet());
@@ -109,6 +108,18 @@ public class TransactionService {
 		transactionCache.clear();
 		System.out.println("Transaction cache cleared.");
 		return transactionCache.isEmpty();
+	}
+	
+	public int[] getSize() {
+		int total = transactionCache.size();
+		int primary = 0;
+		Address addr = transactionCache.getCacheManager().getAddress();
+		for (String key : transactionCache.keySet()) {
+			if (transactionCache.getDistributionManager().getPrimaryLocation(key).equals(addr)) {
+				primary++;
+			}
+		}
+		return new int[] {total, primary};
 	}
 	
 	public void join() {
