@@ -96,7 +96,11 @@ public class TransactionService {
 		System.out.println("Map Reduce task finished with status: " + transactions.size() + " transactions filtered out in " + (end-start) + " milliseconds.");
 		
 		if (!transactions.keySet().isEmpty()) {
-			distExecRunner.execLoadTransactions(transactions.keySet());
+			if (!distExecRunner.isRunning()) {
+				distExecRunner.execLoadTransactions(transactions.keySet());
+			} else {
+				System.out.println("DistExec loading task in progress. Please wait and retry.");
+			}
 		} else {
 			System.out.println("No transaction available to be loaded to distributed cache.");
 		}
@@ -120,9 +124,5 @@ public class TransactionService {
 			}
 		}
 		return new int[] {total, primary};
-	}
-	
-	public void join() {
-		transactionCache.start();
 	}
 }

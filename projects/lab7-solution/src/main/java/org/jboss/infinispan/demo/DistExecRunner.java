@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
@@ -14,6 +15,7 @@ import org.infinispan.distexec.DefaultExecutorService;
 import org.infinispan.distexec.DistributedExecutorService;
 import org.infinispan.distexec.DistributedTask;
 import org.infinispan.distexec.DistributedTaskBuilder;
+import org.infinispan.remoting.transport.Address;
 import org.jboss.infinispan.demo.distexec.LoadTransactionsDistributedCallable;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
@@ -31,6 +33,10 @@ public class DistExecRunner {
 
 	@Inject
 	RemoteCacheLoader remoteCacheLoader;
+	
+	public DistExecRunner() {
+		isRunning = false;
+	}
 	
 	public void execLoadTransactions(Set<String> transactions) {
 		isRunning = true;
@@ -119,6 +125,16 @@ public class DistExecRunner {
 	
 	public boolean isRunning() {
 		return isRunning;
+	}
+	
+	@PostConstruct
+    public void initialize() {
+		List<Address> members = transactionCache.getCacheManager().getMembers();
+		System.out.print("Transaction cache members: ");
+		for (Address address : members) {
+			System.out.print(address.toString() + " ");
+		}
+		System.out.println();
 	}
 	
 }

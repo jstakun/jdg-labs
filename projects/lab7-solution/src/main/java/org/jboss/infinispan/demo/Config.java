@@ -120,7 +120,7 @@ public class Config {
 		
 		GlobalConfiguration glob = new GlobalConfigurationBuilder().clusteredDefault() // Builds a default clustered
 				// configuration
-				.transport().addProperty("configurationFile", "jgroups.xml") // provide a specific JGroups configuration
+				.transport().addProperty("configurationFile", "default-configs/default-jgroups-tcp.xml") //"jgroups.xml") // // provide a specific JGroups configuration
 				.globalJmxStatistics().allowDuplicateDomains(true).enable() // This method enables the jmx statistics of
 				// the global configuration and allows for duplicate JMX domains
 				.build(); // Builds the GlobalConfiguration object
@@ -135,11 +135,5 @@ public class Config {
 				.build();
 				
         return new DefaultCacheManager(glob, loc, true);
-	}
-	
-	@PostConstruct
-    public void initialize() {
-		getLocalTransactionCache().start();
-		System.out.println("Transaction cache status: " + getLocalTransactionCache().getStatus().toString());
 	}
 }
