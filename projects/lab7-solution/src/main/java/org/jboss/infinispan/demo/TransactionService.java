@@ -35,6 +35,7 @@ public class TransactionService {
 	
 	
 	public void generateTestTransaction(int count) {
+		//TODO add Camel/AMQ logic
 		long start = System.currentTimeMillis();
 		Random r = new Random(System.currentTimeMillis());
 		System.out.println("Starting loading transaction batch...");
@@ -57,13 +58,21 @@ public class TransactionService {
     		ctbatch.put(t.getTransactionid(), t);
 			
 			if ((i > 0 && i % 1000 == 0) || (i == count-1 && !ctbatch.isEmpty())) {
-				transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
+				putAllTransactions(ctbatch);
 				ctbatch.clear();
 				System.out.println("Loaded (" + (i+1) + "/" + count + ") transactions.");
 			} 
 		}
 		long end = System.currentTimeMillis();
 		System.out.println("Transaction loading task finished with status: " + count + " transactions loaded in " + (end-start) + " milliseconds.");
+	}
+	
+	public void putAllTransactions(Map<String, CustomerTransaction> ctbatch) {
+		transactionCache.putAll(ctbatch, 1, TimeUnit.DAYS);
+	}
+	
+	public void putTransaction(CustomerTransaction ct) {
+		transactionCache.put(ct.getTransactionid(), ct, 1, TimeUnit.DAYS);
 	}
 	
 	public int filterTransactionAmountCompare(TransactionAmountCompareMapper.Operator o, double limit, boolean echo) {

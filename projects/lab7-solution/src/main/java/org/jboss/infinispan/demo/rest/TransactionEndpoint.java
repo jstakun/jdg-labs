@@ -59,14 +59,6 @@ public class TransactionEndpoint {
 		return Response.status(200).entity(new Status(200, "Cache cleared: " + isClear)).build();
 	}
 	
-	//@GET
-	//@Path("/join")
-	//@Produces("application/json")
-	//public Response join() {
-	//	tService.join();
-	//	return Response.status(200).entity(new Status(200, "Successfully joined JDG cluster")).build();
-	//}
-	
 	@GET
 	@Path("/size")
 	@Produces("application/json")

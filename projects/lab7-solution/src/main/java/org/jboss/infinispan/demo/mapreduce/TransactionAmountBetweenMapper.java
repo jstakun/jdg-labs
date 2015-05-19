@@ -23,6 +23,7 @@ public class TransactionAmountBetweenMapper implements Mapper<String, CustomerTr
 
 	@Override
 	public void map(String key, CustomerTransaction ct, Collector<String, Integer> collector) {
+		//TODO use BRMS here
 		double amount = ct.getAmount();
 		if (amount >= min && amount <= max) {
 			if (echo) {
