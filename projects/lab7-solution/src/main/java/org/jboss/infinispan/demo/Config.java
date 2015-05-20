@@ -3,6 +3,7 @@ package org.jboss.infinispan.demo;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -134,5 +135,10 @@ public class Config {
 				.build();
 				
         return new DefaultCacheManager(glob, loc, true);
+	}
+	
+	@PreDestroy
+	public void deleteTransactionsCache() {
+		//TODO not yet implemented
 	}
 }

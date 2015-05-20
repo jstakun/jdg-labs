@@ -37,6 +37,13 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+		 		<groupId>org.kie</groupId>
+		 		<artifactId>kie-bom</artifactId>
+		 		<version>6.2.0.Final-redhat-4</version>
+		 		<type>pom</type>
+		 		<scope>import</scope>
+	   		</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
@@ -113,10 +120,19 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<groupId>com.redhat.waw.jboss</groupId>
+			<artifactId>cdm</artifactId>
+			<version>0.0.2</version>
 		</dependency>
+		<dependency>
+  		<groupId>org.kie</groupId>
+  		<artifactId>kie-api</artifactId>
+  	</dependency>
+  	<dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-ci</artifactId>
+        <version>6.2.0.Final-redhat-4</version>
+   </dependency>
 	</dependencies>
 	<build>
 		<finalName>mytodo</finalName>
