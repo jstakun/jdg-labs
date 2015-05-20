@@ -13,7 +13,7 @@ import org.kie.api.runtime.rule.FactHandle;
 
 public class CustomerTransactionsKieManager {
 	
-	private static CustomerTransactionsKieManager instance = new CustomerTransactionsKieManager();
+	private static CustomerTransactionsKieManager instance = null;
 	private static List<KieSession> sessionsPool;
 	private static List<Long> activeSessionIds;
 	private static final int SESSION_POOL_SIZE = 10;
@@ -23,6 +23,9 @@ public class CustomerTransactionsKieManager {
 	}
 	
 	public static CustomerTransactionsKieManager getInstance() {
+		if (instance == null) {
+			instance = new CustomerTransactionsKieManager();
+		}
 		return instance;
 	}
 
@@ -79,7 +82,14 @@ public class CustomerTransactionsKieManager {
 		}
 	}
 	
-	public void deleteSessions() {
-		//TODO not yet implemented
+	public static void deleteSessions() {
+		if (sessionsPool != null) {
+			for (KieSession session : sessionsPool) {
+				session.dispose();
+			}
+		}
+		activeSessionIds = null;
+		sessionsPool = null;
+		instance = null;
 	}
 }

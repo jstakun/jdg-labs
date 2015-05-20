@@ -25,6 +25,7 @@ import com.redhat.waw.ose.model.CustomerTransaction;
 @Startup
 public class Config {
 
+	DefaultCacheManager cacheManager = null;
 	/**
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
@@ -83,6 +84,7 @@ public class Config {
 	@Produces
 	@ApplicationScoped
 	public org.infinispan.AdvancedCache<String, CustomerTransaction> getLocalTransactionCache() {
+		System.out.println("Transactions cache exists: " + getLocalCacheManager().cacheExists("transactions"));
 		org.infinispan.Cache<String, CustomerTransaction> basicCache = getLocalCacheManager().getCache("transactions", true);
 		return basicCache.getAdvancedCache();
 	}
@@ -99,33 +101,29 @@ public class Config {
 	 * @return org.infinispan.manager.EmbeddedCacheManager
 	 * @throws IOException 
 	 */
-	private EmbeddedCacheManager getLocalCacheManager() {
-		/*GlobalConfiguration glob = new GlobalConfigurationBuilder()
+	private synchronized EmbeddedCacheManager getLocalCacheManager() {
+		if (cacheManager == null) {
+			/*GlobalConfiguration glob = new GlobalConfigurationBuilder()
 			.globalJmxStatistics().enable()
 			.allowDuplicateDomains(true)
 			.build();
 	
-		org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
+			org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
 			.expiration().lifespan(1,TimeUnit.DAYS)
 			.build();
 		
-		return new DefaultCacheManager(glob, loc, true);*/
+			return new DefaultCacheManager(glob, loc, true);*/
 		
-		/*try {
-			return new DefaultCacheManager("infinispan.xml");
-		} catch (IOException e) {
-			e.printStackTrace();
-			return new DefaultCacheManager();	
-		}*/
-		
-		GlobalConfiguration glob = new GlobalConfigurationBuilder().clusteredDefault() // Builds a default clustered
+			System.out.println("Creating new cache manager...");
+			
+			GlobalConfiguration glob = new GlobalConfigurationBuilder().clusteredDefault() // Builds a default clustered
 				// configuration
 				.transport().addProperty("configurationFile", "default-configs/default-jgroups-tcp.xml") //"jgroups.xml") // // provide a specific JGroups configuration
 				.globalJmxStatistics().allowDuplicateDomains(true).enable() // This method enables the jmx statistics of
 				// the global configuration and allows for duplicate JMX domains
 				.build(); // Builds the GlobalConfiguration object
 		
-		org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
+			org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
 		        .jmxStatistics().enable() // Enable JMX statistics
 				.clustering().cacheMode(CacheMode.DIST_SYNC)// Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
 				.sync().replTimeout(1, TimeUnit.MINUTES) //dist exec timout increased
@@ -133,12 +131,20 @@ public class Config {
 				.expiration().lifespan(1,TimeUnit.DAYS) // Set expiration - cache entries expire after some time (given by
 				// the lifespan parameter) and are removed from the cache (cluster-wide).
 				.build();
-				
-        return new DefaultCacheManager(glob, loc, true);
+			
+			System.out.println("Done.");
+			
+        	cacheManager = new DefaultCacheManager(glob, loc, true);
+		}
+		
+		return cacheManager;
 	}
 	
 	@PreDestroy
 	public void deleteTransactionsCache() {
-		//TODO not yet implemented
+		System.out.println("Cleaning up config...");
+		CustomerTransactionsKieManager.deleteSessions();
+		getLocalCacheManager().removeCache("transactions");
+		System.out.println("Done.");
 	}
 }
