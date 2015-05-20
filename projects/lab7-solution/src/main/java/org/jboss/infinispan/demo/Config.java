@@ -17,6 +17,7 @@ import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.remoting.transport.Transport;
 import org.jboss.infinispan.demo.model.Task;
 
 import com.redhat.waw.ose.model.CustomerTransaction;
@@ -141,10 +142,13 @@ public class Config {
 	}
 	
 	@PreDestroy
-	public void deleteTransactionsCache() {
+	public void cleanUp() {
 		System.out.println("Cleaning up config...");
+		//delete BRMS Kie sessions pool
 		CustomerTransactionsKieManager.deleteSessions();
-		getLocalCacheManager().removeCache("transactions");
+		//leave JGroups cluster
+		Transport t = getLocalTransactionCache().getRpcManager().getTransport();
+		t.stop();
 		System.out.println("Done.");
 	}
 }
