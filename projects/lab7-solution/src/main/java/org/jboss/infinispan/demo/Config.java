@@ -144,9 +144,9 @@ public class Config {
 	@PreDestroy
 	public void cleanUp() {
 		System.out.println("Cleaning up config...");
-		//delete BRMS Kie sessions pool
+		//deleting BRMS Kie sessions pool
 		CustomerTransactionsKieManager.deleteSessions();
-		//leave JGroups cluster
+		//leaving JGroups cluster
 		Transport t = getLocalTransactionCache().getRpcManager().getTransport();
 		t.stop();
 		System.out.println("Done.");
