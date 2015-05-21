@@ -13,31 +13,20 @@ import org.kie.api.runtime.rule.FactHandle;
 
 public class CustomerTransactionsKieManager {
 	
-	private static CustomerTransactionsKieManager instance = null;
-	private static List<KieSession> sessionsPool;
-	private static List<Long> activeSessionIds;
-	private static final int SESSION_POOL_SIZE = 10;
+	private static CustomerTransactionsKieManager instance = new CustomerTransactionsKieManager();
+	private static final int SESSION_POOL_SIZE = 16;
+	private List<KieSession> sessionsPool;
+	private List<Long> activeSessionIds;
+	private KieBase kieBase;
 	
 	private CustomerTransactionsKieManager() {
-		initialize();
-	}
-	
-	public static CustomerTransactionsKieManager getInstance() {
-		if (instance == null) {
-			instance = new CustomerTransactionsKieManager();
-		}
-		return instance;
-	}
-
-    private KieBase kieBase;
-	
-	private void initialize() {		
 		System.out.println("Initializing KieManager instance");
 		KieServices kieServices = KieServices.Factory.get();
 		
 		ReleaseId releaseId = kieServices.newReleaseId("com.redhat.waw.financial", "CustomerTransactions", "1.0.1");
 		KieContainer kContainer = kieServices.newKieContainer(releaseId);
 		KieScanner kScanner = kieServices.newKieScanner(kContainer);
+		
 		// Start the KieScanner polling the Maven repository every 60 seconds
 		kScanner.start( 60 * 1000L );
 		
@@ -49,20 +38,22 @@ public class CustomerTransactionsKieManager {
 		activeSessionIds = new ArrayList<Long>();
 		
 		for(int i=0;i<SESSION_POOL_SIZE;i++) {
-			 sessionsPool.add(kieBase.newKieSession());
+			sessionsPool.add(kieBase.newKieSession());
 		}
 		
-		System.out.println("Created Knowledge Base " + kieBase.toString());
+		System.out.println("Created Customer Transactions knowledge base.");
 	}
 	
-	public KieSession getKieSession() {
+	public static CustomerTransactionsKieManager getInstance() {
+		return instance;
+	}
+	
+	public synchronized KieSession getKieSession() {
 		while (true) {
 			for (KieSession session : sessionsPool) {
-				synchronized (activeSessionIds) {
-					if (!activeSessionIds.contains(session.getIdentifier())) {
+				if (!activeSessionIds.contains(session.getIdentifier())) {
 						activeSessionIds.add(session.getIdentifier());
 						return session;
-					}
 				}
 			}
 			try {
@@ -73,16 +64,16 @@ public class CustomerTransactionsKieManager {
 		}
 	}
 	
-	public void releaseKieSession(KieSession session, List<FactHandle> fhs) {
-		synchronized (activeSessionIds) {
-			for (FactHandle fh : fhs) {
+	public synchronized void releaseKieSession(KieSession session, List<FactHandle> fhs) {
+		for (FactHandle fh : fhs) {
 				session.delete(fh);
-			}
-			activeSessionIds.remove(session.getIdentifier());
 		}
+		activeSessionIds.remove(session.getIdentifier());		
 	}
 	
-	public static void deleteSessions() {
+	public synchronized void deleteSessions() {
+		System.out.println("Cleaning up KIE sessions...");
+		//deleting BRMS Kie sessions pool
 		if (sessionsPool != null) {
 			for (KieSession session : sessionsPool) {
 				session.dispose();
@@ -90,6 +81,6 @@ public class CustomerTransactionsKieManager {
 		}
 		activeSessionIds = null;
 		sessionsPool = null;
-		instance = null;
+		System.out.println("Done");
 	}
 }

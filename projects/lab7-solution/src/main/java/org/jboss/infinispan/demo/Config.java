@@ -27,6 +27,7 @@ import com.redhat.waw.ose.model.CustomerTransaction;
 public class Config {
 
 	DefaultCacheManager cacheManager = null;
+	private static final int REPL_TIMEOUT = 2;
 	/**
 	 * 
 	 * @return org.infinispan.client.hotrod.RemoteCache<Long, Task>
@@ -127,7 +128,7 @@ public class Config {
 			org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
 		        .jmxStatistics().enable() // Enable JMX statistics
 				.clustering().cacheMode(CacheMode.DIST_SYNC)// Set Cache mode to DISTRIBUTED with SYNCHRONOUS replication
-				.sync().replTimeout(1, TimeUnit.MINUTES) //dist exec timout increased
+				.sync().replTimeout(REPL_TIMEOUT, TimeUnit.MINUTES) //dist exec timout increased
 				.hash().numOwners(2) // Keeps two copies of each key/value pair
 				.expiration().lifespan(1,TimeUnit.DAYS) // Set expiration - cache entries expire after some time (given by
 				// the lifespan parameter) and are removed from the cache (cluster-wide).
@@ -144,8 +145,8 @@ public class Config {
 	@PreDestroy
 	public void cleanUp() {
 		System.out.println("Cleaning up config...");
-		//deleting BRMS Kie sessions pool
-		CustomerTransactionsKieManager.deleteSessions();
+		//delete BRMS KIE sessions
+		CustomerTransactionsKieManager.getInstance().deleteSessions();
 		//leaving JGroups cluster
 		Transport t = getLocalTransactionCache().getRpcManager().getTransport();
 		t.stop();

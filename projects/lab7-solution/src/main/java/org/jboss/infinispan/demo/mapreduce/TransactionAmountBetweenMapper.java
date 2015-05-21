@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
 import org.infinispan.distexec.mapreduce.Collector;
 import org.infinispan.distexec.mapreduce.Mapper;
 import org.jboss.infinispan.demo.CustomerTransactionsKieManager;
@@ -22,7 +25,7 @@ public class TransactionAmountBetweenMapper implements Mapper<String, CustomerTr
 	private boolean echo = false;
 	
 	private Constraints c;
-	
+		
 	public TransactionAmountBetweenMapper(double min, double max, boolean echo) {
 		c = new Constraints();
 		c.setBetweenMin(min);
