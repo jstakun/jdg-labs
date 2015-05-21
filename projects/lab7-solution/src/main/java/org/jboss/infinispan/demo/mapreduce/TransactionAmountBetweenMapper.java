@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
-
 import org.infinispan.distexec.mapreduce.Collector;
 import org.infinispan.distexec.mapreduce.Mapper;
 import org.jboss.infinispan.demo.CustomerTransactionsKieManager;
