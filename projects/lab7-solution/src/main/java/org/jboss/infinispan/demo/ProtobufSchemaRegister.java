@@ -50,6 +50,7 @@ public class ProtobufSchemaRegister {
 	}
 	
 	public void register(RemoteCacheManager cacheManager) throws DescriptorParserException, IOException {
+		//register marshaller to the client
 		SerializationContext ctx = ProtoStreamMarshaller.getSerializationContext(cacheManager);
 		ctx.registerProtoFiles(new FileDescriptorSource().addProtoFile("customer.proto", this.getClass().getResourceAsStream(PROTOBUF_DEFINITION_RESOURCE)));
 		ctx.registerMarshaller(new CustomerMarshaller());
@@ -62,11 +63,15 @@ public class ProtobufSchemaRegister {
 		       .addClass(CustomerTransaction.class)
 		       .build(ctx);
 		System.out.println(generatedSchema);*/
+		
+		//register marshaller to server
 		RemoteCache<String, String> metadataCache = cacheManager.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME);
-		metadataCache.put(PROTOBUF_DEFINITION_RESOURCE, ProtobufSchemaRegister.readResource(PROTOBUF_DEFINITION_RESOURCE));
-		String errors = metadataCache.get(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX);
-		if (errors != null) {
-			throw new IllegalStateException("Some Protobuf schema files contain errors:\n" + errors);
+		if (!metadataCache.containsKey(PROTOBUF_DEFINITION_RESOURCE)) {
+			metadataCache.put(PROTOBUF_DEFINITION_RESOURCE, ProtobufSchemaRegister.readResource(PROTOBUF_DEFINITION_RESOURCE));
+			String errors = metadataCache.get(ProtobufMetadataManagerConstants.ERRORS_KEY_SUFFIX);
+			if (errors != null) {
+				throw new IllegalStateException("Some Protobuf schema files contain errors:\n" + errors);
+			}
 		}
 	}
 	
