@@ -8,6 +8,8 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
+import javax.naming.Context;
+import javax.naming.InitialContext;
 
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
@@ -26,7 +28,8 @@ import com.redhat.waw.ose.model.CustomerTransaction;
 @Startup
 public class Config {
 
-	DefaultCacheManager cacheManager = null;
+	EmbeddedCacheManager cacheManager = null;
+	
 	private static final int REPL_TIMEOUT = 2;
 	/**
 	 * 
@@ -103,7 +106,14 @@ public class Config {
 	 * @return org.infinispan.manager.EmbeddedCacheManager
 	 * @throws IOException 
 	 */
-	private synchronized EmbeddedCacheManager getLocalCacheManager() {
+	@Produces
+	public EmbeddedCacheManager getLocalCacheManager() {
+		try {
+			 Context context = new InitialContext();
+			 cacheManager = (EmbeddedCacheManager) context.lookup("java:jboss/infinispan/transactionsCacheManager");
+		} catch (Exception e) {
+	         e.printStackTrace();
+	    }
 		if (cacheManager == null) {
 			/*GlobalConfiguration glob = new GlobalConfigurationBuilder()
 			.globalJmxStatistics().enable()
@@ -123,6 +133,7 @@ public class Config {
 				.transport().addProperty("configurationFile", "default-configs/default-jgroups-tcp.xml") //"jgroups.xml") // // provide a specific JGroups configuration
 				.globalJmxStatistics().allowDuplicateDomains(true).enable() // This method enables the jmx statistics of
 				// the global configuration and allows for duplicate JMX domains
+				.cacheManagerName("transactionsCacheManager")
 				.build(); // Builds the GlobalConfiguration object
 		
 			org.infinispan.configuration.cache.Configuration loc = new org.infinispan.configuration.cache.ConfigurationBuilder()
@@ -134,9 +145,11 @@ public class Config {
 				// the lifespan parameter) and are removed from the cache (cluster-wide).
 				.build();
 			
-			System.out.println("Done.");
-			
-        	cacheManager = new DefaultCacheManager(glob, loc, true);
+			cacheManager = new DefaultCacheManager(glob, loc, true);
+        	
+        	registerCacheManagerInJndi();
+        	
+        	System.out.println("Done.");
 		}
 		
 		return cacheManager;
@@ -152,4 +165,14 @@ public class Config {
 		t.stop();
 		System.out.println("Done.");
 	}
+	
+	public void registerCacheManagerInJndi() {
+        try {
+        	System.out.println("Registering in jndi...");
+            Context context = new InitialContext();
+            context.bind("java:jboss/infinispan/transactionsCacheManager", cacheManager);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -35,7 +35,7 @@ public class TransactionService {
 	
 	
 	public void generateTestTransaction(int count) {
-		//TODO add Camel/AMQ logic
+		
 		long start = System.currentTimeMillis();
 		Random r = new Random(System.currentTimeMillis());
 		System.out.println("Starting loading transaction batch...");
