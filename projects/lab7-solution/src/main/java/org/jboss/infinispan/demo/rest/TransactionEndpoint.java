@@ -66,5 +66,13 @@ public class TransactionEndpoint {
 		int[] size = tService.getSize();
 		return Response.status(200).entity(new Status(200, "Cache contains " + size[0] + " entries and " + size[1] + " primary entries")).build();
 	}
+	
+	@GET
+	@Path("/keys")
+	@Produces("application/json")
+	public Response getKeys(@DefaultValue("10") @QueryParam("count") Integer count) {
+		String keys = tService.getKeys(count);
+		return Response.status(200).entity(new Status(200, "Found following keys: " + keys)).build();
+	}
 }
 

@@ -1,5 +1,6 @@
 package org.jboss.infinispan.demo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+import org.apache.commons.lang.StringUtils;
 import org.infinispan.AdvancedCache;
 import org.infinispan.distexec.mapreduce.MapReduceTask;
 import org.infinispan.distexec.mapreduce.Mapper;
@@ -133,5 +135,17 @@ public class TransactionService {
 			}
 		}
 		return new int[] {total, primary};
+	}
+	
+	public String getKeys(int number) {
+		List<String> keys = new ArrayList<String>();
+		for (String key : transactionCache.keySet()) {
+			if (keys.size() < number) {
+				keys.add(key);
+			} else {
+				break;
+			}
+		}
+		return StringUtils.join(keys, ",");
 	}
 }
