@@ -19,7 +19,7 @@ public class CustomerTransactionsKieManager {
 	private List<Long> activeSessionIds;
 	private KieBase kieBase;
 	
-	private CustomerTransactionsKieManager() {
+	private void initialize() {
 		System.out.println("Initializing KieManager instance");
 		KieServices kieServices = KieServices.Factory.get();
 		
@@ -49,6 +49,9 @@ public class CustomerTransactionsKieManager {
 	}
 	
 	public synchronized KieSession getKieSession() {
+		if (sessionsPool == null) {
+			initialize();
+		}
 		while (true) {
 			for (KieSession session : sessionsPool) {
 				if (!activeSessionIds.contains(session.getIdentifier())) {
@@ -81,6 +84,6 @@ public class CustomerTransactionsKieManager {
 		}
 		activeSessionIds = null;
 		sessionsPool = null;
-		System.out.println("Done");
+		System.out.println("Done.");
 	}
 }

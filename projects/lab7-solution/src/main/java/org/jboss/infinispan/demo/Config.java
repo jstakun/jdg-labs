@@ -112,7 +112,7 @@ public class Config {
 			 Context context = new InitialContext();
 			 cacheManager = (EmbeddedCacheManager) context.lookup("java:jboss/infinispan/transactionsCacheManager");
 		} catch (Exception e) {
-	         e.printStackTrace();
+			 System.out.println("Embedded cache manager not found.");
 	    }
 		if (cacheManager == null) {
 			/*GlobalConfiguration glob = new GlobalConfigurationBuilder()
