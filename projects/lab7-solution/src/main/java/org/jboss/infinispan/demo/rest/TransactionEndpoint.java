@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import org.jboss.infinispan.demo.TransactionService;
 import org.jboss.infinispan.demo.mapreduce.TransactionAmountCompareMapper;
 
+import com.redhat.waw.ose.model.CustomerTransaction;
 import com.redhat.waw.ose.model.Status;
 
 @Stateless
@@ -73,6 +74,14 @@ public class TransactionEndpoint {
 	public Response getKeys(@DefaultValue("10") @QueryParam("count") Integer count) {
 		String keys = tService.getKeys(count);
 		return Response.status(200).entity(new Status(200, "Found following keys: " + keys)).build();
+	}
+	
+	@GET
+	@Path("/get/{key}")
+	@Produces("application/json")
+	public Response getEntity(@PathParam("key") String key) {
+		Object ct = tService.getTransaction(key);
+		return Response.status(200).entity(ct).build();
 	}
 }
 

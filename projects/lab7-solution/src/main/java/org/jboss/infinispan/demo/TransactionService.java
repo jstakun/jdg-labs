@@ -148,4 +148,14 @@ public class TransactionService {
 		}
 		return StringUtils.join(keys, ",");
 	}
+	
+	public Object getTransaction(String key) {
+		Object o = transactionCache.getCacheEntry(key).getValue();
+		if (o instanceof CustomerTransaction) {
+			System.out.println("This object is instance of com.redhat.waw.ose.model.CustomerTransaction.");
+		} else {
+			System.out.println("This object is not instance of com.redhat.waw.ose.model.CustomerTransaction!");			
+		}
+		return o;
+	}
 }
