@@ -13,7 +13,6 @@ import javax.ws.rs.core.Response;
 import org.jboss.infinispan.demo.TransactionService;
 import org.jboss.infinispan.demo.mapreduce.TransactionAmountCompareMapper;
 
-import com.redhat.waw.ose.model.CustomerTransaction;
 import com.redhat.waw.ose.model.Status;
 
 @Stateless
