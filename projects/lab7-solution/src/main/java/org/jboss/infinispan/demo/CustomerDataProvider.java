@@ -25,7 +25,7 @@ public class CustomerDataProvider {
 	}
 	
 	public List<String> getCustomerIds() {
-		if (entityManager != null) {
+		try {
 			TypedQuery<Customer> query = entityManager.createQuery("select c from Customer c", Customer.class);
 			List<Customer> customers = query.getResultList(); 
 			List<String> customerids = new ArrayList<String>(customers.size());
@@ -34,7 +34,8 @@ public class CustomerDataProvider {
 			}
 			System.out.println("Loaded customer data from database.");
 			return customerids;
-		} else {
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
 			System.err.println("Loaded customer data from cache.");
 			return Arrays.asList(customerids);
 		}

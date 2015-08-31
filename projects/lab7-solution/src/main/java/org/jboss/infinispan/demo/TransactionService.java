@@ -134,7 +134,8 @@ public class TransactionService {
 				primary++;
 			}
 		}
-		return new int[] {total, primary};
+		int backup = total - primary;
+		return new int[] {total, primary, backup};
 	}
 	
 	public String getKeys(int number) {
@@ -154,7 +155,7 @@ public class TransactionService {
 		if (o instanceof CustomerTransaction) {
 			System.out.println("This object is instance of com.redhat.waw.ose.model.CustomerTransaction.");
 		} else {
-			System.out.println("This object is not instance of com.redhat.waw.ose.model.CustomerTransaction!");			
+			System.out.println("This object is not instance of com.redhat.waw.ose.model.CustomerTransaction but " + o.getClass().getName() + "!");
 		}
 		return o;
 	}
